@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@components': '/src/components' // You can use this alias if needed
-    }
-  }
+      '@components': path.resolve(__dirname, 'src/Components'), // Corrected alias path
+    },
+  },
 });

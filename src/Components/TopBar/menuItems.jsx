@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
+  Video,
   GraduationCap,
   Award,
   Building2,
@@ -28,6 +29,7 @@ import {
 export const menuItems = [
   { icon: Home, label: 'Home' },
   { icon: LayoutDashboard, label: 'Dashboard' },
+  { icon: Video, label: 'Video' }, // Corrected icon reference
   { icon: BookOpen, label: 'Enroll' },
   {
     icon: BookOpen,

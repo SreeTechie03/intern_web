@@ -6,6 +6,10 @@ import Enroll from "./Enroll";
 import Students from "./Students";
 import Attendance from "./Attendance";
 import MediaLibrary from "./MediaLibrary";
+import Notifications from "./Notifications";
+import SupportTickets  from "./SupportTickets";
+import Video  from "./Video";
+
 
 export function MainContent({ currentView }) {
   console.log(currentView); // Debugging: Log currentView to the console
@@ -16,6 +20,9 @@ export function MainContent({ currentView }) {
         return <Home />;
       case "dashboard":
         return <Dashboard />;
+      case "video":
+        return <Video />;
+
       case "expertise":
         return <Expertise />;
       case "enroll":
@@ -26,6 +33,12 @@ export function MainContent({ currentView }) {
         return <Attendance />;
       case "medialibrary":
         return <MediaLibrary />;
+      case "notifications":
+        return <Notifications />;
+      case "support tickets":
+        return <SupportTickets />;
+      
+        
       default:
         return (
           <p className="text-gray-600">
@@ -40,7 +53,7 @@ export function MainContent({ currentView }) {
     <div className="p-6">
       {/* Conditionally render the title for all views except 'home' */}
       {currentView !== "home" && (
-        <h1 className="text-2xl font-bold mb-4 capitalize">{currentView}</h1>
+        <h1 className="text-2xl font-bold mb-4 capitalize">{}</h1>
       )}
 
       {/* Render content based on currentView */}
