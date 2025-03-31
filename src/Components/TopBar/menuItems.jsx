@@ -1,146 +1,88 @@
-import {
-  Home,
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  Video,
-  GraduationCap,
-  Award,
-  Building2,
-  Clock,
-  CalendarDays,
-  FolderOpen,
-  FileText,
-  Tags,
-  Wallet,
-  Bell,
-  LifeBuoy,
-  HelpCircle,
-  Building,
-  Megaphone,
-  CreditCard,
-  Mail,
-  BarChart3,
-  History,
-  Bookmark,
-  Settings
-} from 'lucide-react';
+import { 
+  Home, LayoutDashboard, GraduationCap, Monitor, Users, Building2, Clock, 
+  Banknote, Wallet, Bell, Building, Megaphone, CreditCard, 
+  History, Settings, Headphones, UserCog, BookCheck, UserPlus, Briefcase, 
+  CalendarRange, ShoppingCart, BadgeHelp, MessageSquare, LineChart, 
+  CircleDollarSign, Cog, Shield,Phone
+} from "lucide-react";
 
 export const menuItems = [
-  { icon: Home, label: 'Home' },
-  { icon: LayoutDashboard, label: 'Dashboard' },
-  { icon: Video, label: 'Video' }, // Corrected icon reference
-  { icon: BookOpen, label: 'Enroll' },
-  {
-    icon: BookOpen,
-    label: 'Courses',
+  { icon: Home, label: "Home" },
+  { 
+    icon: LayoutDashboard, label: "Dashboard",
     children: [
-      { icon: Tags, label: 'Categories' },
-      { icon: BookOpen, label: 'Subject' },
-      { icon: Tags, label: 'Tag' },
-      { icon: Award, label: 'Level' },
-      { icon: Award, label: 'Certifications' },
+      { icon: UserCog, label: "Admin Dashboard" },
+      { icon: Users, label: "Emp Dashboard" }
     ]
   },
-  { icon: Users, label: 'Students' },
-  {
-    icon: GraduationCap,
-    label: 'Instructors',
+
+  { 
+    icon: Headphones, label: "Leads",
     children: [
-      { icon: Users, label: 'Instructor List' }
+      { icon: UserPlus, label: "Leads" },
+      { icon: LineChart, label: "Sales" }
     ]
   },
-  { icon: Award, label: 'Expertise' },
-  {
-    icon: Building2,
-    label: 'Organization',
+  { icon: GraduationCap, label: "Emp Management" },
+  { icon: History, label: "Payment History" },
+  { icon: Banknote, label: "Payout History" },
+  { 
+    icon: Building2, label: "Organization",
     children: [
-      { icon: Users, label: 'Staff' },
-      { icon: Users, label: 'Understaff' },
-      { icon: Clock, label: 'Employee Leave' },
-      { icon: Building, label: 'Department' },
-      { icon: Award, label: 'Designation' },
-      { icon: BarChart3, label: 'Uprising' }
+      { icon: UserCog, label: "Staff" },
+      { icon: Users, label: "Understaff" },
+      { icon: CalendarRange, label: "Employee Leave" },
+      { icon: Building, label: "Department" },
+      { icon: Briefcase, label: "Designation" },
+      { icon: LineChart, label: "Uprising" }
     ]
   },
-  { icon: CalendarDays, label: 'Attendance' },
-  { icon: FolderOpen, label: 'MediaLibrary' },
-  {
-    icon: FileText,
-    label: 'Blog Posts',
+  { 
+    icon: Building2, label: "Department",
     children: [
-      { icon: Tags, label: 'Categories' }
+      { icon: Megaphone, label: "Marketing" },
+      { icon: Users, label: "HR" },
+      { icon: Briefcase, label: "Finance" },
+      { icon: ShoppingCart, label: "Sales" },
+      { icon: Headphones, label: "Support" },
+      { icon: Monitor, label: "IT" },
+      { icon: Settings, label: "Admin" }
     ]
   },
-  {
-    icon: Wallet,
-    label: 'Payment Gateway',
+  { 
+    icon: ShoppingCart, label: "Payment Gateway",
     children: [
-      { icon: Wallet, label: 'Wallet' },
-      {
-        icon: CreditCard,
-        label: 'Payouts',
+      { icon: Wallet, label: "Wallet" },
+      { 
+        icon: CircleDollarSign, label: "Payouts",
         children: [
-          { icon: Settings, label: 'Payout Method' },
-          { icon: Clock, label: 'Payout Request' }
+          { icon: CreditCard, label: "Payout Method" },
+          { icon: Clock, label: "Payout Request" }
         ]
       }
     ]
   },
-  { icon: Bell, label: 'Notifications' },
-  { icon: LifeBuoy, label: 'Support Tickets' },
-  { icon: HelpCircle, label: 'FAQs' },
-  { icon: Building, label: 'Department' },
-  {
-    icon: Megaphone,
-    label: 'Marketing',
+  { icon: Bell, label: "Notifications" },
+  { icon: MessageSquare, label: "Support Tickets" },
+  { icon: Phone, label: "Contact" },
+  { icon: BadgeHelp, label: "FAQs" },
+
+  { 
+    icon: Cog, label: "Settings",
     children: [
-      { icon: Tags, label: 'All Coupons' }
-    ]
-  },
-  { icon: CreditCard, label: 'Subscription' },
-  { icon: Mail, label: 'Emails' },
-  {
-    icon: BarChart3,
-    label: 'Reports',
-    children: [
-      { icon: BarChart3, label: 'Core Sales' }
-    ]
-  },
-  { icon: History, label: 'Payment History' },
-  { icon: History, label: 'Payout History' },
-  { icon: Bookmark, label: 'Wishlist' },
-  {
-    icon: Settings,
-    label: 'Settings',
-    children: [
-      { icon: Settings, label: 'General Settings' },
-      { icon: Settings, label: 'Performance' },
-      { icon: Settings, label: 'Currency' },
-      { icon: Settings, label: 'Language Settings' },
-      { icon: Settings, label: 'Admin Panel Settings' },
-      { icon: Settings, label: 'Storage Settings' },
-      { icon: Settings, label: 'Role and Permissions' },
-      { icon: Settings, label: 'Recruitment Settings' },
-      { icon: Settings, label: 'Company Settings' },
-      { icon: Settings, label: 'Business Settings' },
-      { icon: Settings, label: 'App Settings' },
-      { icon: Settings, label: 'Profile Settings' },
-      { icon: Settings, label: 'Notification Settings' },
-      { icon: Settings, label: 'Finance Settings' },
-      { icon: Settings, label: 'Contract Settings' },
-      { icon: Settings, label: 'Tax Settings' },
-      { icon: Settings, label: 'Ticket Settings' },
-      { icon: Settings, label: 'Project Settings' },
-      { icon: Settings, label: 'Attendance Settings' },
-      { icon: Settings, label: 'Leave Settings' },
-      { icon: Settings, label: 'Message Settings' },
-      { icon: Settings, label: 'Lead Settings' },
-      { icon: Settings, label: 'Time Log Settings' },
-      { icon: Settings, label: 'Task Settings' },
-      { icon: Settings, label: 'Security Settings' },
-      { icon: Settings, label: 'Assets Settings' },
-      { icon: Settings, label: 'Payroll Settings' }
+      { icon: Settings, label: "General" },
+      { icon: UserCog, label: "Admin Panel" },
+      { icon: UserCog, label: "Roles & Permissions" },
+      { icon: UserPlus, label: "Recruitment" },
+      { icon: Building2, label: "Company" },
+      { icon: Briefcase, label: "Business" },
+      { icon: UserCog, label: "Profile" },
+      { icon: Bell, label: "Notifications" },
+      { icon: CircleDollarSign, label: "Finance" },
+      { icon: MessageSquare, label: "Tickets" },
+      { icon: Briefcase, label: "Projects" },
+      { icon: BookCheck, label: "Tasks" },
+      { icon: Shield, label: "Security" },
     ]
   }
 ];
