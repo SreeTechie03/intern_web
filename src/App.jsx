@@ -4,7 +4,6 @@ import { Sidebar } from "./Components/Sidebar/Sidebar";
 import { MainContent } from "./MainContent";
 import { supabase } from "./lib/supabase.js";
 import AuthModal from "./Components/Auth/AuthModal";
-import { LogOut } from "lucide-react";
 
 function App() {
   // State for authentication
@@ -17,14 +16,17 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Check for an active Supabase session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setLoading(false);
-    });
+    };
 
-    // Listen for authentication changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    fetchSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         localStorage.setItem("user", JSON.stringify(session.user));
         setUser(session.user);
@@ -37,7 +39,7 @@ function App() {
     });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -50,8 +52,18 @@ function App() {
 
   // Function to handle logout
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error.message);
+        return;
+      }
+      setUser(null);
+      localStorage.removeItem("user");
+      setShowAuthModal(true);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   // Function to handle view change from Sidebar
@@ -73,11 +85,10 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {showAuthModal && <AuthModal onLoginSuccess={handleLoginSuccess} onClose={() => setShowAuthModal(false)} />}
-
       {user ? (
         <>
-          {/* TopBar Component */}
-          <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
+          {/* TopBar Component with Logout */}
+          <TopBar onMenuClick={() => setIsSidebarOpen(true)} onLogout={handleSignOut} />
 
           {/* Sidebar Component */}
           <Sidebar
@@ -91,25 +102,8 @@ function App() {
           <main className="pt-16 md:pl-64">
             <MainContent currentView={currentView} />
           </main>
-
-          {/* Logout Button */}
-          <button
-            onClick={handleSignOut}
-            className="fixed bottom-5 right-5 bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 transition"
-          >
-            <LogOut size={18} /> 
-          </button>
         </>
-      ) : (
-        <div className="flex items-center justify-center min-h-screen">
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
-          >
-            Sign In
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
