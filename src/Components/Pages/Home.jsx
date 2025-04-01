@@ -5,7 +5,7 @@ function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Navigation */}
-      <nav className="absolute top-0 left-0 right-0 z-50">
+      {/* <nav className="absolute top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
@@ -19,7 +19,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -45,7 +45,7 @@ function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-slate-900/50 backdrop-blur-lg">
+      {/* <section id="features" className="py-20 bg-slate-900/50 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Why Choose SmartEd?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -65,10 +65,10 @@ function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* About Section */}
-      <section id="about" className="py-20 relative overflow-hidden">
+      {/* <section id="about" className="py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="bg-slate-800/70 backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-slate-700/50">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -107,7 +107,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer */}
       <footer className="bg-slate-900/80 backdrop-blur-lg border-t border-slate-800">
