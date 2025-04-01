@@ -1,143 +1,176 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { GraduationCap, Lightbulb, Target, Trophy, Rocket, Users, Mail, Linkedin, Github } from 'lucide-react';
 
 function Home() {
-  const [showCourses, setShowCourses] = useState(false);
-
-  const handleExploreCourses = () => {
-    setShowCourses(!showCourses);
-  };
-
   return (
-    <div className="bg-gray-100 min-h-screen text-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Navigation */}
+      <nav className="absolute top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <GraduationCap className="w-8 h-8 text-blue-400" />
+              <span className="text-white font-bold text-xl">SmartEd</span>
+            </div>
+            <div className="hidden md:flex space-x-8">
+              <a href="#about" className="text-gray-300 hover:text-white transition-colors duration-300">About</a>
+              <a href="#features" className="text-gray-300 hover:text-white transition-colors duration-300">Features</a>
+              <a href="#contact" className="text-gray-300 hover:text-white transition-colors duration-300">Contact</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="flex flex-col justify-center items-center flex-grow p-4 md:p-6">
-        <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-          Welcome to SmartEd Innovations 🎓
-        </h1>
-        <p className="text-base md:text-lg mb-6 text-center px-4">
-          Helping students achieve their dreams, as long as their internet connection agrees.
-        </p>
-        <button
-          onClick={handleExploreCourses}
-          className="bg-blue-600 text-white px-6 md:px-8 py-3 rounded-lg text-lg md:text-xl hover:bg-blue-700 transition ease-in-out transform hover:scale-105"
-        >
-          {showCourses ? 'Hide Courses' : 'Explore Courses'}
-        </button>
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10"></div>
+        </div>
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text animate-gradient">
+            Welcome to SmartEd Innovations
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
+            Transforming education through cutting-edge technology and innovative learning solutions.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button className="px-8 py-4 bg-blue-500 text-white rounded-lg transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-blue-500/50">
+              Get Started
+            </button>
+            <button className="px-8 py-4 bg-transparent border-2 border-blue-400 text-blue-400 rounded-lg transform hover:scale-105 transition-all duration-300">
+              Learn More
+            </button>
+          </div>
+        </div>
       </section>
 
-      {/* Courses Section */}
-      {showCourses && (
-        <section className="bg-white text-gray-900 p-4 md:p-6 rounded-lg shadow-lg mx-2 md:mx-4 my-4 md:my-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center">Explore Our Courses</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-            <div className="bg-blue-100 p-4 rounded-lg hover:shadow-xl transition">
-              <h3 className="text-lg md:text-xl font-semibold">AI and Machine Learning</h3>
-              <p className="text-sm mt-2">Learn how AI is shaping the future of industries.</p>
-            </div>
-            <div className="bg-green-100 p-4 rounded-lg hover:shadow-xl transition">
-              <h3 className="text-lg md:text-xl font-semibold">Full Stack Web Development</h3>
-              <p className="text-sm mt-2">Master front-end and back-end technologies.</p>
-            </div>
-            <div className="bg-yellow-100 p-4 rounded-lg hover:shadow-xl transition">
-              <h3 className="text-lg md:text-xl font-semibold">Data Science</h3>
-              <p className="text-sm mt-2">Analyze and interpret data like a pro.</p>
-            </div>
-            <div className="bg-red-100 p-4 rounded-lg hover:shadow-xl transition">
-              <h3 className="text-lg md:text-xl font-semibold">Cybersecurity</h3>
-              <p className="text-sm mt-2">Protect systems and networks from cyber threats.</p>
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-slate-900/50 backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Why Choose SmartEd?</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: Lightbulb, title: "Innovative Learning", color: "blue" },
+              { icon: Target, title: "Personalized Path", color: "purple" },
+              { icon: Trophy, title: "Industry Recognition", color: "pink" },
+              { icon: Rocket, title: "Fast-Track Growth", color: "orange" }
+            ].map((feature, index) => (
+              <div key={index} className="bg-slate-800/50 backdrop-blur rounded-xl p-6 transform hover:-translate-y-2 transition-all duration-300 border border-slate-700/50 hover:border-slate-600">
+                <div className={`w-12 h-12 rounded-lg bg-${feature.color}-500/20 flex items-center justify-center mb-4`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-gray-400">Experience world-class education with our cutting-edge platform and expert instructors.</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="bg-slate-800/70 backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-slate-700/50">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About SmartEd Innovations</h2>
+                <p className="text-gray-300 leading-relaxed mb-6">
+                  We're revolutionizing education by combining cutting-edge technology with proven learning methodologies. Our platform adapts to each student's unique learning style, ensuring optimal results.
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex -space-x-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <img
+                        key={i}
+                        src={`https://i.pravatar.cc/40?img=${i}`}
+                        alt={`Team member ${i}`}
+                        className="w-10 h-10 rounded-full border-2 border-slate-800"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-gray-400">Join our growing community</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { number: "15K+", label: "Students" },
+                  { number: "95%", label: "Success Rate" },
+                  { number: "200+", label: "Courses" },
+                  { number: "50+", label: "Countries" }
+                ].map((stat, index) => (
+                  <div key={index} className="bg-slate-700/30 rounded-lg p-6 text-center">
+                    <div className="text-2xl font-bold text-blue-400 mb-2">{stat.number}</div>
+                    <div className="text-gray-400">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6 md:py-8">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {/* About Section */}
-          <div>
-            <h3 className="text-lg font-bold mb-3">About SmartEd Innovations</h3>
-            <p className="text-sm">
-              SmartEd Innovations is dedicated to advancing education through cutting-edge
-              technology and accessible learning solutions.
-            </p>
-            <p className="text-sm mt-4">© 2024 SmartEd Innovations. All rights reserved.</p>
+      <footer className="bg-slate-900/80 backdrop-blur-lg border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="w-6 h-6 text-blue-400" />
+                <span className="text-white font-bold">SmartEd</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Transforming education through innovation and technology.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Partners</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Connect</h3>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Github className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-bold mb-3">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="https://www.linkedin.com/jobs/smarted-jobs" className="text-sm hover:underline">Job Opportunities</a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:underline">Intranet</a>
-              </li>
-              <li>
-                <a href="https://www.linkedin.com/company/smarted-edu/people/" className="text-sm hover:underline">Media Centre</a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:underline">Research Portal</a>
-              </li>
-            </ul>
+          <div className="mt-12 pt-8 border-t border-slate-800 text-center">
+            <p className="text-gray-400">© {new Date().getFullYear()} SmartEd Innovations. All rights reserved.</p>
           </div>
-
-          {/* Connect With Us */}
-          <div>
-            <h3 className="text-lg font-bold mb-3">Connect With Us</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="https://www.linkedin.com/company/smarted-edu"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm hover:underline"
-                >
-                  LinkedIn
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm hover:underline"
-                >
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm hover:underline"
-                >
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a
-                  href="mailto:Sreekar@smarted.pro"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm hover:underline"
-                >
-                  Email Us
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="text-center text-xs md:text-sm mt-6 md:mt-8 text-gray-400">
-          <p>
-            <a href="#" className="hover:underline">Accessibility Statement</a> |{' '}
-            <a href="#" className="hover:underline">Privacy Policy</a> |{' '}
-            <a href="#" className="hover:underline">Terms of Use</a>
-          </p>
         </div>
       </footer>
+
+      {/* Custom Styles */}
+      <style jsx>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% auto;
+          animation: gradient 4s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }

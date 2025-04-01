@@ -1,7 +1,6 @@
 import { 
-  Home, LayoutDashboard, GraduationCap, Monitor, Users, Building2, Clock, 
-  Banknote, Wallet, Bell, Building, Megaphone, CreditCard, 
-  History, Settings, Headphones, UserCog, BookCheck, UserPlus, Briefcase, 
+  Home, LayoutDashboard, GraduationCap, Monitor, Users, Building2,
+  Bell, Building, Megaphone,History, Settings, Headphones, UserCog, BookCheck, UserPlus, Briefcase, 
   CalendarRange, ShoppingCart, BadgeHelp, MessageSquare, LineChart, 
   CircleDollarSign, Cog, Shield,Phone
 } from "lucide-react";
@@ -49,19 +48,7 @@ export const menuItems = [
       { icon: Settings, label: "Admin" }
     ]
   },
-  { 
-    icon: ShoppingCart, label: "Payment Gateway",
-    children: [
-      { icon: Wallet, label: "Wallet" },
-      { 
-        icon: CircleDollarSign, label: "Payouts",
-        children: [
-          { icon: CreditCard, label: "Payout Method" },
-          { icon: Clock, label: "Payout Request" }
-        ]
-      }
-    ]
-  },
+  
   { icon: Bell, label: "Notifications" },
   { icon: MessageSquare, label: "Support Tickets" },
   { icon: Phone, label: "Contact" },

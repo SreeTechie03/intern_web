@@ -21,6 +21,7 @@ import Admin from "./Components/Department/Admin";
 import Notifications from "./Components/Pages/Notifications";
 import SupportTickets from "./Components/Pages/SupportTickets";
 import Contact from "./Components/Pages/Contact";
+import Faqs from "./Components/Pages/Faqs";
 export function MainContent({ currentView }) {
   const renderContent = () => {
     switch (currentView.toLowerCase()) {
@@ -68,6 +69,8 @@ export function MainContent({ currentView }) {
         return <Contact />;
       case "support tickets":
         return <SupportTickets />;
+      case "faqs":
+        return <Faqs />;
       
       
       default:
