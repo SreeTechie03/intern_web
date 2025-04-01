@@ -5,7 +5,7 @@ import EmpDashboard from "./Components/Dashboard/EmpDashboard";
 import Leads from "./Components/Leads/Leads";
 import Sales from "./Components/Leads/Sales";
 import EmpManagement from "./Components/Pages/EmpManagement";
-import PaymentHistory from "./Components/History/PaymentHistory";
+import PaymentHistory from "./Components/Pages/PaymentHistory";
 import Staff from "./Components/Organization/Staff";
 import Understaff from "./Components/Organization/Understaff";
 import EmpLeave from "./Components/Organization/EmpLeave";
