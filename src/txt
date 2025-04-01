@@ -10,11 +10,19 @@ function PaymentHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
 
+  const [email, setEmail] = useState('');
+  const [keyInput, setKeyInput] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [keyError, setKeyError] = useState(null);
+  const [emailError, setEmailError] = useState(null);
+  const [keySent, setKeySent] = useState(false);
+  const [verificationKey, setVerificationKey] = useState('');
+
   const fetchTransactions = async () => {
     try {
       setLoading(true);
       setError(null);
-  
+
       const razorpayAPI = axios.create({
         baseURL: '/api', // Use the proxy path
         auth: {
@@ -26,13 +34,13 @@ function PaymentHistory() {
           'Accept': 'application/json'
         }
       });
-  
+
       const response = await razorpayAPI.get('/payments', {
         params: {
           count: 100
         }
       });
-  
+
       setTransactions(response.data.items);
     } catch (err) {
       setError('Failed to fetch transactions. Please try again later.');
@@ -41,11 +49,12 @@ function PaymentHistory() {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (isAuthenticated) {
+      fetchTransactions();
+    }
+  }, [isAuthenticated]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -69,6 +78,83 @@ function PaymentHistory() {
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  const handleEmailSubmit = async () => {
+    setEmailError(null);
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    try {
+      // Simulating sending the key to the email (replace with actual email service)
+      const generatedKey = Math.random().toString(36).substr(2, 6); // Generate a random 6-character key
+      setVerificationKey(generatedKey);
+      
+      // Replace this with an actual API call to send the email (e.g., using an email service)
+      console.log(`Sending key ${generatedKey} to email: ${email}`);
+      
+      // Set key sent state to true to prompt the user for the key input
+      setKeySent(true);
+    } catch (error) {
+      setEmailError('Failed to send verification key. Please try again later.');
+    }
+  };
+
+  const handleKeySubmit = () => {
+    if (keyInput === verificationKey) {
+      setIsAuthenticated(true);
+      setKeyError(null);
+    } else {
+      setKeyError('Invalid key. Please try again.');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+          {!keySent ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Email</h2>
+              {emailError && <p className="text-red-500 text-sm mb-4">{emailError}</p>}
+              <input
+                type="email"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button
+                onClick={handleEmailSubmit}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+              >
+                Submit
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Verification Key</h2>
+              {keyError && <p className="text-red-500 text-sm mb-4">{keyError}</p>}
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Enter the key sent to your email"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+              />
+              <button
+                onClick={handleKeySubmit}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+              >
+                Submit
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

@@ -6,7 +6,6 @@ import Leads from "./Components/Leads/Leads";
 import Sales from "./Components/Leads/Sales";
 import EmpManagement from "./Components/Pages/EmpManagement";
 import PaymentHistory from "./Components/History/PaymentHistory";
-import PayoutHistory from "./Components/Settings/PayoutHistory";
 import Staff from "./Components/Organization/Staff";
 import Understaff from "./Components/Organization/Understaff";
 import EmpLeave from "./Components/Organization/EmpLeave";
@@ -39,8 +38,6 @@ export function MainContent({ currentView }) {
         return <EmpManagement />;
       case "payment history":
         return <PaymentHistory />;
-      case "payout history":
-        return <PayoutHistory />;
       case "staff":
         return <Staff />;
       case "understaff":

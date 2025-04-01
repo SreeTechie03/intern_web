@@ -25,7 +25,7 @@ export const menuItems = [
   },
   { icon: GraduationCap, label: "Emp Management" },
   { icon: History, label: "Payment History" },
-  { icon: Banknote, label: "Payout History" },
+  
   { 
     icon: Building2, label: "Organization",
     children: [
