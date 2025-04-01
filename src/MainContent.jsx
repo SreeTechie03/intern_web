@@ -1,6 +1,6 @@
 import React from "react";
 import Home from "./Components/Pages/Home";
-import Dashboard from "./Components/Dashboard/AdminDashboard";
+import AdminDashboard from "./Components/Dashboard/AdminDashboard";
 import EmpDashboard from "./Components/Dashboard/EmpDashboard";
 import Leads from "./Components/Leads/Leads";
 import Sales from "./Components/Leads/Sales";
@@ -27,8 +27,8 @@ export function MainContent({ currentView }) {
     switch (currentView.toLowerCase()) {
       case "home":
         return <Home />;
-      case "dashboard":
-        return <Dashboard />;
+      case "admin dashboard":
+        return <AdminDashboard />;
       case "emp dashboard":
         return <EmpDashboard />;
       case "leads":

@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Bell, User, Menu, LogOut } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { UserActions } from "./UserActions";
 import { Logo } from "./Logo";

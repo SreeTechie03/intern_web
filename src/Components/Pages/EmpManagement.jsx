@@ -1,5 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Search, UserPlus, Mail, CheckCircle, XCircle, ArrowUpDown, X, Building2, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, UserPlus, Mail, CheckCircle, XCircle, ArrowUpDown, X, Building2, MoreVertical, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import { Toaster, toast } from 'react-hot-toast';
+
+// API base URL
+const API_BASE_URL = 'https://jsonplaceholder.typicode.com';
 
 function ViewEmployeeModal({ isOpen, onClose, employee }) {
   if (!isOpen || !employee) return null;
@@ -47,7 +52,7 @@ function ViewEmployeeModal({ isOpen, onClose, employee }) {
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">Additional Information</label>
             <p className="text-gray-700">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              {employee.company?.catchPhrase || 'No additional information available.'}
             </p>
           </div>
         </div>
@@ -69,17 +74,35 @@ function AddEmployeeModal({ isOpen, onClose, onAdd }) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('employee');
   const [active, setActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAdd({ name, email, role, active });
-    setName('');
-    setEmail('');
-    setRole('employee');
-    setActive(false);
-    onClose();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await axios.post(`${API_BASE_URL}/users`, {
+        name,
+        email,
+        role,
+        active
+      });
+      
+      onAdd(response.data);
+      toast.success('Employee added successfully!');
+      setName('');
+      setEmail('');
+      setRole('employee');
+      setActive(false);
+      onClose();
+    } catch (error) {
+      toast.error('Failed to add employee. Please try again.');
+      console.error('Error adding employee:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -145,14 +168,17 @@ function AddEmployeeModal({ isOpen, onClose, onAdd }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               Add Employee
             </button>
           </div>
@@ -162,15 +188,8 @@ function AddEmployeeModal({ isOpen, onClose, onAdd }) {
   );
 }
 
-const employeesData = [
-  { id: 1, name: 'David Warner', email: 'davidwarner@gmail.com', role: 'admin', active: true },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah.j@example.com', role: 'manager', active: false },
-  { id: 3, name: 'Michael Chen', email: 'mchen@example.com', role: 'employee', active: true },
-  { id: 4, name: 'Emma Davis', email: 'emma.d@example.com', role: 'employee', active: true },
-];
-
 function EmployeeManagement() {
-  const [employees, setEmployees] = useState(employeesData);
+  const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [filterActive, setFilterActive] = useState(null);
@@ -178,6 +197,32 @@ function EmployeeManagement() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users`);
+      // Transform the API data to match our schema
+      const transformedData = response.data.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.company?.bs.includes('manager') ? 'manager' : 'employee',
+        active: true, // Default to active since the API doesn't provide this
+        company: user.company
+      }));
+      setEmployees(transformedData);
+    } catch (error) {
+      toast.error('Failed to fetch employees. Please refresh the page.');
+      console.error('Error fetching employees:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredEmployees = useMemo(() => {
     let result = [...employees];
@@ -215,13 +260,19 @@ function EmployeeManagement() {
   };
 
   const handleAddEmployee = (newEmployee) => {
-    const id = Math.max(...employees.map(e => e.id)) + 1;
-    setEmployees(prev => [...prev, { ...newEmployee, id }]);
+    setEmployees(prev => [...prev, newEmployee]);
   };
 
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
-      setEmployees(prev => prev.filter(emp => emp.id !== id));
+      try {
+        await axios.delete(`${API_BASE_URL}/users/${id}`);
+        setEmployees(prev => prev.filter(emp => emp.id !== id));
+        toast.success('Employee deleted successfully!');
+      } catch (error) {
+        toast.error('Failed to delete employee. Please try again.');
+        console.error('Error deleting employee:', error);
+      }
     }
     setActiveDropdown(null);
   };
@@ -238,6 +289,7 @@ function EmployeeManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 sm:p-8">
@@ -263,128 +315,138 @@ function EmployeeManagement() {
                 />
               </div>
               <div className="flex gap-3 w-full sm:w-auto">
-                <select 
-                 className="px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow flex-1 sm:flex-none appearance-none"
-                 value={filterActive === null ? 'all' : filterActive.toString()}
-                 onChange={(e) => setFilterActive(e.target.value === 'all' ? null : e.target.value === 'true')}>
-                 <option value="all">All Employees</option>
-                 <option value="true">Active</option>
-                 <option value="false">Inactive</option>
-               </select>
-               <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
-                   <UserPlus className="h-5 w-5" />
-                   <span className="hidden sm:inline">Add Employee</span>
+                <select
+                  className="px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow flex-1 sm:flex-none"
+                  value={filterActive === null ? 'all' : filterActive.toString()}
+                  onChange={(e) => setFilterActive(e.target.value === 'all' ? null : e.target.value === 'true')}
+                >
+                  <option value="all">All Employees</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+                <button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl hover:bg-indigo-700 transition-colors"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span className="hidden sm:inline">Add Employee</span>
                 </button>
               </div>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-gray-200">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th 
-                      className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => toggleSort('name')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Name
-                        <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => toggleSort('email')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Email
-                        <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => toggleSort('role')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Role
-                        <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredEmployees.map(employee => (
-                    <tr key={employee.id} className="group hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {employee.email}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th 
+                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => toggleSort('name')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Name
+                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 capitalize">{employee.role}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            employee.active
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-red-50 text-red-700'
-                          }`}
-                        >
-                          {employee.active ? (
-                            <CheckCircle className="h-4 w-4 mr-1.5" />
-                          ) : (
-                            <XCircle className="h-4 w-4 mr-1.5" />
-                          )}
-                          {employee.active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="relative">
-                          <button
-                            onClick={() => toggleDropdown(employee.id)}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <MoreVertical className="h-5 w-5 text-gray-500" />
-                          </button>
-                          {activeDropdown === employee.id && (
-                            <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-                              <div className="py-1">
-                                <button
-                                  onClick={() => handleViewEmployee(employee)}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
-                                </button>
-                                <button
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteEmployee(employee.id)}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                      </th>
+                      <th 
+                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => toggleSort('email')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Email
+                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
                         </div>
-                      </td>
+                      </th>
+                      <th 
+                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => toggleSort('role')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Role
+                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredEmployees.length === 0 && (
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredEmployees.map(employee => (
+                      <tr key={employee.id} className="group hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                            {employee.email}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 capitalize">{employee.role}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              employee.active
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {employee.active ? (
+                              <CheckCircle className="h-4 w-4 mr-1.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mr-1.5" />
+                            )}
+                            {employee.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleDropdown(employee.id)}
+                              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                              <MoreVertical className="h-5 w-5 text-gray-500" />
+                            </button>
+                            {activeDropdown === employee.id && (
+                              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="py-1">
+                                  <button
+                                    onClick={() => handleViewEmployee(employee)}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </button>
+                                  <button
+                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteEmployee(employee.id)}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {!isLoading && filteredEmployees.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-sm">No employees found matching your criteria</p>
                 </div>

@@ -30,7 +30,7 @@ export const menuItems = [
     children: [
       { icon: UserCog, label: "Staff" },
       { icon: Users, label: "Understaff" },
-      { icon: CalendarRange, label: "Employee Leave" },
+      { icon: CalendarRange, label: "Emp Leave" },
       { icon: Building, label: "Department" },
       { icon: Briefcase, label: "Designation" },
       { icon: LineChart, label: "Uprising" }
