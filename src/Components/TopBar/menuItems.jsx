@@ -70,19 +70,19 @@ export const menuItems = [
   { 
     icon: Cog, label: "Settings",
     children: [
-      { icon: Settings, label: "General" },
-      { icon: UserCog, label: "Admin Panel" },
-      { icon: UserCog, label: "Roles & Permissions" },
-      { icon: UserPlus, label: "Recruitment" },
-      { icon: Building2, label: "Company" },
-      { icon: Briefcase, label: "Business" },
-      { icon: UserCog, label: "Profile" },
-      { icon: Bell, label: "Notifications" },
-      { icon: CircleDollarSign, label: "Finance" },
-      { icon: MessageSquare, label: "Tickets" },
-      { icon: Briefcase, label: "Projects" },
-      { icon: BookCheck, label: "Tasks" },
-      { icon: Shield, label: "Security" },
+      { icon: Settings, label: "General Settings" },
+      { icon: UserCog, label: "Admin Settings" },
+      { icon: UserCog, label: "Roles & Permissions Settings" },
+      { icon: UserPlus, label: "Recruitment Settings" },
+      { icon: Building2, label: "Company Settings" },
+      { icon: Briefcase, label: "Business Settings" },
+      { icon: UserCog, label: "Profile Settings" },
+      { icon: Bell, label: "Notifications Settings" },
+      { icon: CircleDollarSign, label: "Finance Settings" },
+      { icon: MessageSquare, label: "Tickets Settings" },
+      { icon: Briefcase, label: "Projects Settings" },
+      { icon: BookCheck, label: "Tasks Settings" },
+      { icon: Shield, label: "Security Settings" },
     ]
   }
 ];
