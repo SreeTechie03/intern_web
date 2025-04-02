@@ -1,5 +1,5 @@
 {
-  "name": "hello",
+  "name": "smarted-innovations",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,22 +10,30 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^6.3.0",
-    "@mui/material": "^6.3.0",
-    "axios": "^1.7.7",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^5.17.1",
+    "@mui/material": "^5.17.1",
+    "@supabase/supabase-js": "^2.49.4",
+    "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "boxicons": "^2.1.4",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "echarts": "^5.5.1",
+    "emailjs-com": "^3.2.0",
+    "express": "^5.1.0",
     "lucide-react": "^0.469.0",
+    "mdb-react-ui-kit": "^9.0.0",
     "mui-datatables": "^4.3.0",
-    "mui-tables": "^2.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.4.0",
-    "react-router-dom": "^7.1.0"
+    "react-router-dom": "^7.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -40,6 +48,6 @@
     "globals": "^15.11.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "vite": "^5.4.10"
+    "vite": "^5.4.11"
   }
 }

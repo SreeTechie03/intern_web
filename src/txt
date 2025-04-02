@@ -1,0 +1,486 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { IndianRupee, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+
+function PaymentHistory() {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const transactionsPerPage = 10;
+
+  const [email, setEmail] = useState('');
+  const [keyInput, setKeyInput] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [keyError, setKeyError] = useState(null);
+  const [emailError, setEmailError] = useState(null);
+  const [keySent, setKeySent] = useState(false);
+  const [verificationKey, setVerificationKey] = useState('');
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const razorpayAPI = axios.create({
+        baseURL: '/api', // Use the proxy path
+        auth: {
+          username: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          password: import.meta.env.VITE_RAZORPAY_KEY_SECRET
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      const response = await razorpayAPI.get('/payments', {
+        params: {
+          count: 100
+        }
+      });
+
+      setTransactions(response.data.items);
+    } catch (err) {
+      setError('Failed to fetch transactions. Please try again later.');
+      console.error('Error fetching transactions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTransactions();
+    }
+  }, [isAuthenticated]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'captured':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'refunded':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Pagination logic
+  const indexOfLastTransaction = currentPage * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = transactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
+  const totalPages = Math.ceil(transactions.length / transactionsPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleEmailSubmit = async () => {
+    setEmailError(null);
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    try {
+      // Simulating sending the key to the email (replace with actual email service)
+      const generatedKey = Math.random().toString(36).substr(2, 6); // Generate a random 6-character key
+      setVerificationKey(generatedKey);
+      
+      // Replace this with an actual API call to send the email (e.g., using an email service)
+      console.log(`Sending key ${generatedKey} to email: ${email}`);
+      
+      // Set key sent state to true to prompt the user for the key input
+      setKeySent(true);
+    } catch (error) {
+      setEmailError('Failed to send verification key. Please try again later.');
+    }
+  };
+
+  const handleKeySubmit = () => {
+    if (keyInput === verificationKey) {
+      setIsAuthenticated(true);
+      setKeyError(null);
+    } else {
+      setKeyError('Invalid key. Please try again.');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+          {!keySent ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Email</h2>
+              {emailError && <p className="text-red-500 text-sm mb-4">{emailError}</p>}
+              <input
+                type="email"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button
+                onClick={handleEmailSubmit}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+              >
+                Submit
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Verification Key</h2>
+              {keyError && <p className="text-red-500 text-sm mb-4">{keyError}</p>}
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Enter the key sent to your email"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+              />
+              <button
+                onClick={handleKeySubmit}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+              >
+                Submit
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+          <div className="flex items-center justify-center text-red-500 mb-4">
+            <AlertCircle size={48} />
+          </div>
+          <p className="text-center text-gray-700">{error}</p>
+          <button
+            onClick={fetchTransactions}
+            className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+          >
+            <RefreshCw size={20} />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+          <button
+            onClick={fetchTransactions}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
+            disabled={loading}
+          >
+            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="flex justify-center items-center">
+              <RefreshCw size={32} className="animate-spin text-blue-500" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentTransactions.map((transaction) => (
+                      <tr key={transaction.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {transaction.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex items-center gap-1">
+                            <IndianRupee size={16} />
+                            {(transaction.amount / 100).toFixed(2)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
+                            {transaction.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {transaction.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {transaction.contact}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {format(new Date(transaction.created_at * 1000), 'PPpp')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{indexOfFirstTransaction + 1}</span> to{' '}
+                  <span className="font-medium">
+                    {Math.min(indexOfLastTransaction, transactions.length)}
+                  </span>{' '}
+                  of <span className="font-medium">{transactions.length}</span> transactions
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index + 1}
+                    onClick={() => paginate(index + 1)}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === index + 1
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-md ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default PaymentHistory;
+
+
+///LANDING PAGE
+
+import React from 'react';
+import { GraduationCap, Lightbulb, Target, Trophy, Rocket, Users, Mail, Linkedin, Github } from 'lucide-react';
+
+function Home() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Navigation */}
+      <nav className="absolute top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <GraduationCap className="w-8 h-8 text-blue-400" />
+              <span className="text-white font-bold text-xl">SmartEd</span>
+            </div>
+            <div className="hidden md:flex space-x-8">
+              <a href="#about" className="text-gray-300 hover:text-white transition-colors duration-300">About</a>
+              <a href="#features" className="text-gray-300 hover:text-white transition-colors duration-300">Features</a>
+              <a href="#contact" className="text-gray-300 hover:text-white transition-colors duration-300">Contact</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10"></div>
+        </div>
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text animate-gradient">
+            Welcome to SmartEd Innovations
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
+            Transforming education through cutting-edge technology and innovative learning solutions.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button className="px-8 py-4 bg-blue-500 text-white rounded-lg transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-blue-500/50">
+              Get Started
+            </button>
+            <button className="px-8 py-4 bg-transparent border-2 border-blue-400 text-blue-400 rounded-lg transform hover:scale-105 transition-all duration-300">
+              Learn More
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-slate-900/50 backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Why Choose SmartEd?</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: Lightbulb, title: "Innovative Learning", color: "blue" },
+              { icon: Target, title: "Personalized Path", color: "purple" },
+              { icon: Trophy, title: "Industry Recognition", color: "pink" },
+              { icon: Rocket, title: "Fast-Track Growth", color: "orange" }
+            ].map((feature, index) => (
+              <div key={index} className="bg-slate-800/50 backdrop-blur rounded-xl p-6 transform hover:-translate-y-2 transition-all duration-300 border border-slate-700/50 hover:border-slate-600">
+                <div className={`w-12 h-12 rounded-lg bg-${feature.color}-500/20 flex items-center justify-center mb-4`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-gray-400">Experience world-class education with our cutting-edge platform and expert instructors.</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="bg-slate-800/70 backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-slate-700/50">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About SmartEd Innovations</h2>
+                <p className="text-gray-300 leading-relaxed mb-6">
+                  We're revolutionizing education by combining cutting-edge technology with proven learning methodologies. Our platform adapts to each student's unique learning style, ensuring optimal results.
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex -space-x-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <img
+                        key={i}
+                        src={`https://i.pravatar.cc/40?img=${i}`}
+                        alt={`Team member ${i}`}
+                        className="w-10 h-10 rounded-full border-2 border-slate-800"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-gray-400">Join our growing community</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { number: "15K+", label: "Students" },
+                  { number: "95%", label: "Success Rate" },
+                  { number: "200+", label: "Courses" },
+                  { number: "50+", label: "Countries" }
+                ].map((stat, index) => (
+                  <div key={index} className="bg-slate-700/30 rounded-lg p-6 text-center">
+                    <div className="text-2xl font-bold text-blue-400 mb-2">{stat.number}</div>
+                    <div className="text-gray-400">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900/80 backdrop-blur-lg border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="w-6 h-6 text-blue-400" />
+                <span className="text-white font-bold">SmartEd</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Transforming education through innovation and technology.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Partners</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Connect</h3>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Github className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="mt-12 pt-8 border-t border-slate-800 text-center">
+            <p className="text-gray-400">© {new Date().getFullYear()} SmartEd Innovations. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Custom Styles */}
+      <style jsx>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% auto;
+          animation: gradient 4s linear infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default Home;
