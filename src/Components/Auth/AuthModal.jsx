@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Mail, Lock, User, ArrowRight, X } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, X, CheckCircle } from "lucide-react";
 import { supabase } from "../../lib/supabase.js";
 import toast, { Toaster } from 'react-hot-toast';
 
 const AuthModal = ({ onLoginSuccess, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -17,6 +18,23 @@ const AuthModal = ({ onLoginSuccess, onClose }) => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const checkEmailExists = async (email) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+      
+      // If we get here without an error, the email exists
+      return !error;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -32,12 +50,27 @@ const AuthModal = ({ onLoginSuccess, onClose }) => {
 
         if (error) throw error;
 
+        // Check if email is confirmed
+        if (!data.user.email_confirmed_at) {
+          toast.error('Please confirm your email before logging in');
+          setIsLoading(false);
+          return;
+        }
+
         toast.success('Successfully signed in!');
         onLoginSuccess({ 
           username: formData.email.split('@')[0],
           ...data.user
         });
       } else {
+        // Check if email already exists
+        const emailExists = await checkEmailExists(formData.email);
+        if (emailExists) {
+          toast.error('This email is already registered. Please use a different email or sign in.');
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -45,16 +78,14 @@ const AuthModal = ({ onLoginSuccess, onClose }) => {
             data: {
               username: formData.username,
             },
+            emailRedirectTo: window.location.origin,
           },
         });
 
         if (error) throw error;
 
-        toast.success('Successfully created account!');
-        onLoginSuccess({ 
-          username: formData.username,
-          ...data.user
-        });
+        setShowConfirmationMessage(true);
+        toast.success('Registration successful! Please check your email.');
       }
     } catch (error) {
       toast.error(error.message);
@@ -65,8 +96,46 @@ const AuthModal = ({ onLoginSuccess, onClose }) => {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
+    setShowConfirmationMessage(false);
     setFormData({ username: "", password: "", email: "" });
   };
+
+  if (showConfirmationMessage) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+        <div className="relative w-full max-w-md transform transition-all">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <button 
+              onClick={onClose}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center space-y-4">
+              <CheckCircle className="text-green-500 w-16 h-16" />
+              <h2 className="text-2xl font-bold text-gray-800">Check Your Email</h2>
+              <p className="text-gray-600 max-w-sm">
+                We've sent a confirmation link to <strong>{formData.email}</strong>. 
+                Please check your email and click the link to activate your account.
+              </p>
+              <div className="pt-4 border-t border-gray-200 w-full">
+                <button
+                  onClick={() => {
+                    setIsLogin(true);
+                    setShowConfirmationMessage(false);
+                  }}
+                  className="text-blue-500 hover:text-blue-600 font-medium"
+                >
+                  Return to Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
