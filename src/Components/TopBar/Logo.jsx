@@ -1,8 +1,12 @@
-import React from 'react';
+import React from "react";
 
 export function Logo() {
+  const handleRefresh = () => {
+    window.location.reload(); // Refresh the page
+  };
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 cursor-pointer" onClick={handleRefresh}>
       <img
         src="/src/assets/smarted-logo.svg"
         alt="SmartEd Innovations"
