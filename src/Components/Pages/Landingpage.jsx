@@ -48,8 +48,8 @@ function LandingPage({ onLoginClick }) {
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Your name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                />
             </div>
             
             <div>
@@ -221,7 +221,7 @@ function LandingPage({ onLoginClick }) {
       {/* Features Section */}
       <section id="features" className="py-20 bg-slate-900/50 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Why Choose SmartEd?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Why Choose SmartED?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { Icon: Lightbulb, title: "Innovative Learning", bgColor: "bg-blue-500/20", textColor: "text-blue-400" },
@@ -247,7 +247,7 @@ function LandingPage({ onLoginClick }) {
           <div className="bg-slate-800/70 backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-slate-700/50">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About SmartEd Innovations</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About SmartED Innovations</h2>
                 <p className="text-gray-300 leading-relaxed mb-6">
                   We're revolutionizing education by combining cutting-edge technology with proven learning methodologies. Our platform adapts to each student's unique learning style, ensuring optimal results.
                 </p>
@@ -256,7 +256,7 @@ function LandingPage({ onLoginClick }) {
                     {[1, 2, 3, 4].map((i) => (
                       <img
                         key={i}
-                        src={`https://i.pravatar.cc/40?img=${i}`}
+                        src={`https://i.pravatar.cc/80?img=${i}`}
                         alt={`Team member ${i}`}
                         className="w-10 h-10 rounded-full border-2 border-slate-800"
                       />

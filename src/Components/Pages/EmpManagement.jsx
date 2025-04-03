@@ -1,12 +1,188 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, UserPlus, Mail, CheckCircle, XCircle, ArrowUpDown, X, Building2, MoreVertical, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { Toaster, toast } from 'react-hot-toast';
+import {
+  Search, UserPlus, Mail, CheckCircle, XCircle, Clock,
+  ArrowUpDown, X, Building2, MoreVertical,
+  Eye, Edit, Trash2, Loader2
+} from 'lucide-react';
 
-// API base URL
-const API_BASE_URL = 'https://jsonplaceholder.typicode.com';
+// Initialize Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
-function ViewEmployeeModal({ isOpen, onClose, employee }) {
+// Employee Form Component
+const EmployeeForm = ({ employee, onSubmit, onCancel, isSubmitting }) => {
+  const [formData, setFormData] = useState({
+    name: employee?.name || '',
+    email: employee?.email || '',
+    role: employee?.role || 'employee',
+    status: employee?.status || 'active'
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+        <input
+          type="text"
+          name="name"
+          required
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+          placeholder="Enter employee name"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+          placeholder="Enter email address"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+        >
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="employee">Employee</option>
+          <option value="intern">Intern</option>
+          <option value="salesmanager">Sales Manager</option>
+          <option value="Developer">Developer</option>
+
+        </select>
+      </div>
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Status</label>
+        <div className="flex gap-4">
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              name="status"
+              value="active"
+              checked={formData.status === 'active'}
+              onChange={handleChange}
+              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="ml-2 text-gray-700">Active</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              name="status"
+              value="inactive"
+              checked={formData.status === 'inactive'}
+              onChange={handleChange}
+              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="ml-2 text-gray-700">Inactive</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              name="status"
+              value="onleave"
+              checked={formData.status === 'onleave'}
+              onChange={handleChange}
+              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="ml-2 text-gray-700">On Leave</span>
+          </label>
+        </div>
+      </div>
+      <div className="flex justify-end gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+        >
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {employee ? 'Update' : 'Add'} Employee
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Employee Modal Component
+const EmployeeModal = ({ isOpen, onClose, employee, onSave }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (error) {
+      toast.error(error.message || 'Operation failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {employee ? 'Edit' : 'Add'} Employee
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-700 transition-colors p-1 hover:bg-gray-100 rounded-full"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <EmployeeForm
+          employee={employee}
+          onSubmit={handleSubmit}
+          onCancel={onClose}
+          isSubmitting={isSubmitting}
+        />
+      </div>
+    </div>
+  );
+};
+
+// View Employee Modal
+const ViewEmployeeModal = ({ isOpen, onClose, employee }) => {
   if (!isOpen || !employee) return null;
 
   return (
@@ -33,27 +209,31 @@ function ViewEmployeeModal({ isOpen, onClose, employee }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Role</label>
-              <p className="text-lg font-medium text-gray-900">{employee.role}</p>
+              <p className="text-lg font-medium text-gray-900 capitalize">{employee.role}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Status</label>
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                employee.active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                employee.status === 'active' 
+                  ? 'bg-green-50 text-green-700'
+                  : employee.status === 'onleave'
+                    ? 'bg-yellow-50 text-yellow-700'
+                    : 'bg-red-50 text-red-700'
               }`}>
-                {employee.active ? (
+                {employee.status === 'active' ? (
                   <CheckCircle className="h-4 w-4 mr-1.5" />
+                ) : employee.status === 'onleave' ? (
+                  <Clock className="h-4 w-4 mr-1.5" />
                 ) : (
                   <XCircle className="h-4 w-4 mr-1.5" />
                 )}
-                {employee.active ? 'Active' : 'Inactive'}
+                {employee.status === 'active'
+                  ? 'Active'
+                  : employee.status === 'onleave'
+                    ? 'On Leave'
+                    : 'Inactive'}
               </span>
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">Additional Information</label>
-            <p className="text-gray-700">
-              {employee.company?.catchPhrase || 'No additional information available.'}
-            </p>
           </div>
         </div>
         <div className="flex justify-end mt-6">
@@ -67,134 +247,16 @@ function ViewEmployeeModal({ isOpen, onClose, employee }) {
       </div>
     </div>
   );
-}
+};
 
-function AddEmployeeModal({ isOpen, onClose, onAdd }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState('employee');
-  const [active, setActive] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const response = await axios.post(`${API_BASE_URL}/users`, {
-        name,
-        email,
-        role,
-        active
-      });
-      
-      onAdd(response.data);
-      toast.success('Employee added successfully!');
-      setName('');
-      setEmail('');
-      setRole('employee');
-      setActive(false);
-      onClose();
-    } catch (error) {
-      toast.error('Failed to add employee. Please try again.');
-      console.error('Error adding employee:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Add New Employee</h2>
-          <button 
-            onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700 transition-colors p-1 hover:bg-gray-100 rounded-full"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
-              placeholder="Enter employee name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
-              placeholder="Enter email address"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
-            >
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="employee">Employee</option>
-            </select>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="active"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-            <label htmlFor="active" className="ml-3 text-sm text-gray-700">
-              Set as active employee
-            </label>
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
-            >
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Add Employee
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function EmployeeManagement() {
+// Main Employee Management Component
+const EmployeeManagement = () => {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-  const [filterActive, setFilterActive] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -205,20 +267,16 @@ function EmployeeManagement() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/users`);
-      // Transform the API data to match our schema
-      const transformedData = response.data.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.company?.bs.includes('manager') ? 'manager' : 'employee',
-        active: true, // Default to active since the API doesn't provide this
-        company: user.company
-      }));
-      setEmployees(transformedData);
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setEmployees(data || []);
     } catch (error) {
-      toast.error('Failed to fetch employees. Please refresh the page.');
-      console.error('Error fetching employees:', error);
+      toast.error(error.message || 'Failed to fetch employees.');
     } finally {
       setIsLoading(false);
     }
@@ -229,14 +287,14 @@ function EmployeeManagement() {
 
     if (searchTerm) {
       result = result.filter(
-        employee =>
-          employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          employee.email.toLowerCase().includes(searchTerm.toLowerCase())
+        emp =>
+          emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          emp.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (filterActive !== null) {
-      result = result.filter(employee => employee.active === filterActive);
+    if (filterStatus !== null) {
+      result = result.filter(emp => emp.status === filterStatus);
     }
 
     result.sort((a, b) => {
@@ -250,41 +308,83 @@ function EmployeeManagement() {
     });
 
     return result;
-  }, [employees, searchTerm, sortConfig, filterActive]);
+  }, [employees, searchTerm, sortConfig, filterStatus]);
 
-  const toggleSort = (key) => {
-    setSortConfig(current => ({
-      key,
-      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
-    }));
+  const handleAddEmployee = async (formData) => {
+    try {
+      const { data, error } = await supabase
+        .from('employees')
+        .insert([formData])
+        .select();
+      
+      if (error) throw error;
+      
+      setEmployees(prev => [data[0], ...prev]);
+      toast.success('Employee added successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to add employee.');
+    }
   };
 
-  const handleAddEmployee = (newEmployee) => {
-    setEmployees(prev => [...prev, newEmployee]);
+  const handleUpdateEmployee = async (formData) => {
+    try {
+      const { data, error } = await supabase
+        .from('employees')
+        .update(formData)
+        .eq('id', currentEmployee.id)
+        .select();
+      
+      if (error) throw error;
+      
+      setEmployees(prev => prev.map(emp => 
+        emp.id === currentEmployee.id ? data[0] : emp
+      ));
+      toast.success('Employee updated successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update employee.');
+    }
   };
 
   const handleDeleteEmployee = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/users/${id}`);
+        const { error } = await supabase
+          .from('employees')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
         setEmployees(prev => prev.filter(emp => emp.id !== id));
         toast.success('Employee deleted successfully!');
       } catch (error) {
-        toast.error('Failed to delete employee. Please try again.');
-        console.error('Error deleting employee:', error);
+        toast.error(error.message || 'Failed to delete employee.');
       }
     }
     setActiveDropdown(null);
   };
 
   const handleViewEmployee = (employee) => {
-    setSelectedEmployee(employee);
+    setCurrentEmployee(employee);
     setIsViewModalOpen(true);
+    setActiveDropdown(null);
+  };
+
+  const handleEditEmployee = (employee) => {
+    setCurrentEmployee(employee);
+    setIsModalOpen(true);
     setActiveDropdown(null);
   };
 
   const toggleDropdown = (id) => {
     setActiveDropdown(activeDropdown === id ? null : id);
+  };
+
+  const toggleSort = (key) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+    }));
   };
 
   return (
@@ -317,15 +417,19 @@ function EmployeeManagement() {
               <div className="flex gap-3 w-full sm:w-auto">
                 <select
                   className="px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow flex-1 sm:flex-none"
-                  value={filterActive === null ? 'all' : filterActive.toString()}
-                  onChange={(e) => setFilterActive(e.target.value === 'all' ? null : e.target.value === 'true')}
+                  value={filterStatus === null ? 'all' : filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value === 'all' ? null : e.target.value)}
                 >
                   <option value="all">All Employees</option>
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="onleave">On Leave</option>
                 </select>
                 <button 
-                  onClick={() => setIsAddModalOpen(true)}
+                  onClick={() => {
+                    setCurrentEmployee(null);
+                    setIsModalOpen(true);
+                  }}
                   className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl hover:bg-indigo-700 transition-colors"
                 >
                   <UserPlus className="h-5 w-5" />
@@ -392,17 +496,25 @@ function EmployeeManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              employee.active
+                              employee.status === 'active'
                                 ? 'bg-green-50 text-green-700'
-                                : 'bg-red-50 text-red-700'
+                                : employee.status === 'onleave'
+                                  ? 'bg-yellow-50 text-yellow-700'
+                                  : 'bg-red-50 text-red-700'
                             }`}
                           >
-                            {employee.active ? (
+                            {employee.status === 'active' ? (
                               <CheckCircle className="h-4 w-4 mr-1.5" />
+                            ) : employee.status === 'onleave' ? (
+                              <Clock className="h-4 w-4 mr-1.5" />
                             ) : (
                               <XCircle className="h-4 w-4 mr-1.5" />
                             )}
-                            {employee.active ? 'Active' : 'Inactive'}
+                            {employee.status === 'active'
+                              ? 'Active'
+                              : employee.status === 'onleave'
+                                ? 'On Leave'
+                                : 'Inactive'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -414,16 +526,17 @@ function EmployeeManagement() {
                               <MoreVertical className="h-5 w-5 text-gray-500" />
                             </button>
                             {activeDropdown === employee.id && (
-                              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                              <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
                                 <div className="py-1">
                                   <button
                                     onClick={() => handleViewEmployee(employee)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
-                                    View Details
+                                    View
                                   </button>
                                   <button
+                                    onClick={() => handleEditEmployee(employee)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
@@ -456,22 +569,20 @@ function EmployeeManagement() {
         </div>
       </div>
 
-      <AddEmployeeModal 
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddEmployee}
+      <EmployeeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        employee={currentEmployee}
+        onSave={currentEmployee ? handleUpdateEmployee : handleAddEmployee}
       />
 
       <ViewEmployeeModal
         isOpen={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedEmployee(null);
-        }}
-        employee={selectedEmployee}
+        onClose={() => setIsViewModalOpen(false)}
+        employee={currentEmployee}
       />
     </div>
   );
-}
+};
 
 export default EmployeeManagement;
