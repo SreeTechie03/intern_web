@@ -7,7 +7,7 @@ import {
   Eye, Edit, Trash2, Loader2
 } from 'lucide-react';
 
-// Initialize Supabase client
+// Initialize a single Supabase client instance
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -74,8 +74,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel, isSubmitting }) => {
           <option value="employee">Employee</option>
           <option value="intern">Intern</option>
           <option value="salesmanager">Sales Manager</option>
-          <option value="Developer">Developer</option>
-
+          <option value="developer">Developer</option>
         </select>
       </div>
       <div className="space-y-2">
@@ -260,6 +259,7 @@ const EmployeeManagement = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -267,16 +267,20 @@ const EmployeeManagement = () => {
 
   const fetchEmployees = async () => {
     try {
-      const { data, error } = await supabase
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error: supabaseError } = await supabase
         .from('employees')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (supabaseError) throw supabaseError;
 
       setEmployees(data || []);
-    } catch (error) {
-      toast.error(error.message || 'Failed to fetch employees.');
+    } catch (err) {
+      setError(err.message || 'Failed to fetch employees');
+      toast.error(err.message || 'Failed to fetch employees');
     } finally {
       setIsLoading(false);
     }
@@ -285,23 +289,30 @@ const EmployeeManagement = () => {
   const filteredEmployees = useMemo(() => {
     let result = [...employees];
 
+    // Apply search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       result = result.filter(
         emp =>
-          emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          emp.email.toLowerCase().includes(searchTerm.toLowerCase())
+          emp.name?.toLowerCase().includes(term) ||
+          emp.email?.toLowerCase().includes(term)
       );
     }
 
+    // Apply status filter
     if (filterStatus !== null) {
       result = result.filter(emp => emp.status === filterStatus);
     }
 
+    // Apply sorting
     result.sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
+      const aValue = a[sortConfig.key] || '';
+      const bValue = b[sortConfig.key] || '';
+      
+      if (aValue < bValue) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
+      if (aValue > bValue) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;
@@ -321,8 +332,10 @@ const EmployeeManagement = () => {
       
       setEmployees(prev => [data[0], ...prev]);
       toast.success('Employee added successfully!');
+      return true;
     } catch (error) {
       toast.error(error.message || 'Failed to add employee.');
+      throw error;
     }
   };
 
@@ -340,28 +353,31 @@ const EmployeeManagement = () => {
         emp.id === currentEmployee.id ? data[0] : emp
       ));
       toast.success('Employee updated successfully!');
+      return true;
     } catch (error) {
       toast.error(error.message || 'Failed to update employee.');
+      throw error;
     }
   };
 
   const handleDeleteEmployee = async (id) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      try {
-        const { error } = await supabase
-          .from('employees')
-          .delete()
-          .eq('id', id);
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .delete()
+        .eq('id', id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setEmployees(prev => prev.filter(emp => emp.id !== id));
-        toast.success('Employee deleted successfully!');
-      } catch (error) {
-        toast.error(error.message || 'Failed to delete employee.');
-      }
+      setEmployees(prev => prev.filter(emp => emp.id !== id));
+      toast.success('Employee deleted successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete employee.');
+    } finally {
+      setActiveDropdown(null);
     }
-    setActiveDropdown(null);
   };
 
   const handleViewEmployee = (employee) => {
@@ -381,9 +397,9 @@ const EmployeeManagement = () => {
   };
 
   const toggleSort = (key) => {
-    setSortConfig(current => ({
+    setSortConfig(prev => ({
       key,
-      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
@@ -443,126 +459,138 @@ const EmployeeManagement = () => {
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
                 </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th 
-                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => toggleSort('name')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Name
-                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                        </div>
-                      </th>
-                      <th 
-                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => toggleSort('email')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Email
-                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                        </div>
-                      </th>
-                      <th 
-                        className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => toggleSort('role')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Role
-                          <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredEmployees.map(employee => (
-                      <tr key={employee.id} className="group hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                            {employee.email}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 capitalize">{employee.role}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              employee.status === 'active'
-                                ? 'bg-green-50 text-green-700'
-                                : employee.status === 'onleave'
-                                  ? 'bg-yellow-50 text-yellow-700'
-                                  : 'bg-red-50 text-red-700'
-                            }`}
-                          >
-                            {employee.status === 'active' ? (
-                              <CheckCircle className="h-4 w-4 mr-1.5" />
-                            ) : employee.status === 'onleave' ? (
-                              <Clock className="h-4 w-4 mr-1.5" />
-                            ) : (
-                              <XCircle className="h-4 w-4 mr-1.5" />
-                            )}
-                            {employee.status === 'active'
-                              ? 'Active'
-                              : employee.status === 'onleave'
-                                ? 'On Leave'
-                                : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="relative">
-                            <button
-                              onClick={() => toggleDropdown(employee.id)}
-                              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                              <MoreVertical className="h-5 w-5 text-gray-500" />
-                            </button>
-                            {activeDropdown === employee.id && (
-                              <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-                                <div className="py-1">
-                                  <button
-                                    onClick={() => handleViewEmployee(employee)}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    View
-                                  </button>
-                                  <button
-                                    onClick={() => handleEditEmployee(employee)}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteEmployee(employee.id)}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-              {!isLoading && filteredEmployees.length === 0 && (
+              ) : error ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-sm">No employees found matching your criteria</p>
+                  <p className="text-red-500">{error}</p>
+                  <button
+                    onClick={fetchEmployees}
+                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  >
+                    Retry
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th 
+                          className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => toggleSort('name')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Name
+                            <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => toggleSort('email')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Email
+                            <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => toggleSort('role')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Role
+                            <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                        <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredEmployees.map(employee => (
+                        <tr key={employee.id} className="group hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                              {employee.email}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900 capitalize">{employee.role}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                employee.status === 'active'
+                                  ? 'bg-green-50 text-green-700'
+                                  : employee.status === 'onleave'
+                                    ? 'bg-yellow-50 text-yellow-700'
+                                    : 'bg-red-50 text-red-700'
+                              }`}
+                            >
+                              {employee.status === 'active' ? (
+                                <CheckCircle className="h-4 w-4 mr-1.5" />
+                              ) : employee.status === 'onleave' ? (
+                                <Clock className="h-4 w-4 mr-1.5" />
+                              ) : (
+                                <XCircle className="h-4 w-4 mr-1.5" />
+                              )}
+                              {employee.status === 'active'
+                                ? 'Active'
+                                : employee.status === 'onleave'
+                                  ? 'On Leave'
+                                  : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="relative">
+                              <button
+                                onClick={() => toggleDropdown(employee.id)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                              >
+                                <MoreVertical className="h-5 w-5 text-gray-500" />
+                              </button>
+                              {activeDropdown === employee.id && (
+                                <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => handleViewEmployee(employee)}
+                                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditEmployee(employee)}
+                                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteEmployee(employee.id)}
+                                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {filteredEmployees.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500 text-sm">No employees found matching your criteria</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
