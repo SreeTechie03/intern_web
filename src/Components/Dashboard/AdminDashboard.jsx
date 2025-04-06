@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement } from 'chart.js';
 import { IndianRupee, RefreshCw, AlertCircle } from 'lucide-react';
-import { format, parseISO, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
+import { format, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
 import axios from 'axios';
 import './AdminDashboard.css';
 
@@ -77,21 +77,30 @@ const AdminDashboard = () => {
 
     const monthlyData = months.map(month => {
       const monthKey = format(month, 'MMM');
-      const monthStart = startOfYear(month);
-      const monthEnd = endOfYear(month);
+      const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+      const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-      const monthlyTransactions = transactions.filter(tx => {
+      const successfulTransactions = transactions.filter(tx => {
         const txDate = new Date(tx.created_at * 1000);
         return tx.status === 'captured' && 
                txDate >= monthStart && 
                txDate <= monthEnd;
       });
 
-      const monthlyRevenue = monthlyTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
+      const failedTransactions = transactions.filter(tx => {
+        const txDate = new Date(tx.created_at * 1000);
+        return tx.status === 'failed' && 
+               txDate >= monthStart && 
+               txDate <= monthEnd;
+      });
+
+      const successfulRevenue = successfulTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
+      const failedRevenue = failedTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
       
       return {
         month: monthKey,
-        revenue: monthlyRevenue
+        successful: successfulRevenue,
+        failed: failedRevenue
       };
     });
 
@@ -156,14 +165,24 @@ const AdminDashboard = () => {
   // Chart data
   const revenueData = {
     labels: monthlyRevenueData.map(data => data.month),
-    datasets: [{
-      label: 'Revenue (₹)',
-      data: monthlyRevenueData.map(data => data.revenue),
-      borderColor: '#4a6bdf',
-      backgroundColor: 'rgba(74, 107, 223, 0.2)',
-      tension: 0.4,
-      fill: true
-    }]
+    datasets: [
+      {
+        label: 'Successful Payments (₹)',
+        data: monthlyRevenueData.map(data => data.successful),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        tension: 0.4,
+        fill: false
+      },
+      {
+        label: 'Failed Payments (₹)',
+        data: monthlyRevenueData.map(data => data.failed),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+        tension: 0.4,
+        fill: false
+      }
+    ]
   };
 
   const teamPerformanceData = {
@@ -189,11 +208,16 @@ const AdminDashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' },
+      legend: { 
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+        }
+      },
       tooltip: {
         callbacks: {
           label: function(context) {
-            return `₹${context.raw.toLocaleString()}`;
+            return `${context.dataset.label.split(' (')[0]}: ₹${context.raw.toLocaleString()}`;
           }
         }
       }
@@ -207,6 +231,10 @@ const AdminDashboard = () => {
           }
         }
       }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false
     }
   };
 
@@ -243,7 +271,7 @@ const AdminDashboard = () => {
                     <li key={member.id}>
                       <strong>{member.name}</strong>
                       <span>{member.position}</span>
-                      <small>Joined: {new Date(member.joinDate).toLocaleDateString()}</small>
+                      <small>Joined: {format(new Date(member.joinDate), 'dd MMM yyyy')}</small>
                     </li>
                   ))}
                 </ul>
@@ -287,7 +315,7 @@ const AdminDashboard = () => {
                 <td>{employee.team}</td>
                 <td>{employee.position}</td>
                 <td>₹{employee.salary.toLocaleString()}</td>
-                <td>{new Date(employee.joinDate).toLocaleDateString()}</td>
+                <td>{format(new Date(employee.joinDate), 'dd MMM yyyy')}</td>
               </tr>
             ))}
           </tbody>
@@ -406,7 +434,7 @@ const AdminDashboard = () => {
 
       <div className="charts-row">
         <div className="chart-card">
-          <h3>Revenue Overview ({new Date().getFullYear()})</h3>
+          <h3>Payment Status Overview ({new Date().getFullYear()})</h3>
           <div className="chart-container">
             <Line data={revenueData} options={chartOptions} />
           </div>
