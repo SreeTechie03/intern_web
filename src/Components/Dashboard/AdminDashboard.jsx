@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement } from 'chart.js';
 import { IndianRupee, RefreshCw, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
 import axios from 'axios';
 import './AdminDashboard.css';
 
@@ -67,6 +67,39 @@ const AdminDashboard = () => {
     return acc;
   }, { completed: 0, pending: 0, failed: 0, completedCount: 0, pendingCount: 0, failedCount: 0 });
 
+  // Generate monthly revenue data from transactions
+  const generateMonthlyRevenueData = () => {
+    const currentYear = new Date().getFullYear();
+    const months = eachMonthOfInterval({
+      start: startOfYear(new Date(currentYear, 0, 1)),
+      end: endOfYear(new Date(currentYear, 11, 31))
+    });
+
+    const monthlyData = months.map(month => {
+      const monthKey = format(month, 'MMM');
+      const monthStart = startOfYear(month);
+      const monthEnd = endOfYear(month);
+
+      const monthlyTransactions = transactions.filter(tx => {
+        const txDate = new Date(tx.created_at * 1000);
+        return tx.status === 'captured' && 
+               txDate >= monthStart && 
+               txDate <= monthEnd;
+      });
+
+      const monthlyRevenue = monthlyTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
+      
+      return {
+        month: monthKey,
+        revenue: monthlyRevenue
+      };
+    });
+
+    return monthlyData;
+  };
+
+  const monthlyRevenueData = generateMonthlyRevenueData();
+
   // Mock data for other sections
   const dashboardData = {
     teams: [
@@ -122,10 +155,10 @@ const AdminDashboard = () => {
 
   // Chart data
   const revenueData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    labels: monthlyRevenueData.map(data => data.month),
     datasets: [{
-      label: 'Revenue (in thousands)',
-      data: [200, 400, 600, 400, 200, 300, 500, 700, 600, 800, 900, 1000],
+      label: 'Revenue (₹)',
+      data: monthlyRevenueData.map(data => data.revenue),
       borderColor: '#4a6bdf',
       backgroundColor: 'rgba(74, 107, 223, 0.2)',
       tension: 0.4,
@@ -136,7 +169,7 @@ const AdminDashboard = () => {
   const teamPerformanceData = {
     labels: dashboardData.teams.map(team => team.name),
     datasets: [{
-      label: 'Revenue (in hundred thousands)',
+      label: 'Revenue (₹)',
       data: dashboardData.teams.map(team => team.revenue / 100000),
       backgroundColor: [
         'rgba(74, 107, 223, 0.7)',
@@ -160,7 +193,7 @@ const AdminDashboard = () => {
       tooltip: {
         callbacks: {
           label: function(context) {
-            return `$${context.raw}0K`;
+            return `₹${context.raw.toLocaleString()}`;
           }
         }
       }
@@ -170,7 +203,7 @@ const AdminDashboard = () => {
         beginAtZero: true,
         ticks: {
           callback: function(value) {
-            return `$${value}0K`;
+            return `₹${value.toLocaleString()}`;
           }
         }
       }
@@ -195,7 +228,7 @@ const AdminDashboard = () => {
             <div className="team-header">
               <h3>{team.name}</h3>
               <div className="team-stats">
-                <span>Revenue: ${team.revenue.toLocaleString()}</span>
+                <span>Revenue: ₹{team.revenue.toLocaleString()}</span>
                 <span>Members: {team.members}</span>
                 <span>Tasks: {team.activeTasks}</span>
                 <span>Completion: {team.completionRate}%</span>
@@ -253,7 +286,7 @@ const AdminDashboard = () => {
                 <td>{employee.name}</td>
                 <td>{employee.team}</td>
                 <td>{employee.position}</td>
-                <td>${employee.salary.toLocaleString()}</td>
+                <td>₹{employee.salary.toLocaleString()}</td>
                 <td>{new Date(employee.joinDate).toLocaleDateString()}</td>
               </tr>
             ))}
@@ -373,7 +406,7 @@ const AdminDashboard = () => {
 
       <div className="charts-row">
         <div className="chart-card">
-          <h3>Revenue Overview</h3>
+          <h3>Revenue Overview ({new Date().getFullYear()})</h3>
           <div className="chart-container">
             <Line data={revenueData} options={chartOptions} />
           </div>
@@ -405,7 +438,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="revenue-info">
                   <p>Revenue Contribution</p>
-                  <p>${(employee.teamName === 'Alpha Squad' ? 198450 : 
+                  <p>₹{(employee.teamName === 'Alpha Squad' ? 198450 : 
                         employee.teamName === 'Beta Squad' ? 187600 : 176900).toLocaleString()}</p>
                 </div>
               </div>
