@@ -1,0 +1,187 @@
+.employee-dashboard {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .search-bar-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .search-input {
+    padding: 10px 15px;
+    width: 300px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+  }
+  
+  .dashboard-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .stats-row {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .revenue-card, .performance-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    flex: 1;
+  }
+  
+  .revenue-card h3, .performance-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+  
+  .amount {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #2c3e50;
+  }
+  
+  .progress-container {
+    margin: 15px 0;
+  }
+  
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #3498db;
+  }
+  
+  .progress-percent, .progress-value {
+    display: block;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+  }
+  
+  .performance-stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+  }
+  
+  .stat-item {
+    text-align: center;
+  }
+  
+  .stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+  }
+  
+  .stat-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+  
+  .progress-title {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+  }
+  
+  .data-tables {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .task-table, .payment-table {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    flex: 1;
+  }
+  
+  .task-table h3, .payment-table h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  th, td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  
+  th {
+    background-color: #f8f9fa;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  td {
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+  
+  .dashboard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .stats-row {
+      flex-direction: column;
+    }
+    
+    .data-tables {
+      flex-direction: column;
+    }
+    
+    .search-input {
+      width: 100%;
+    }
+    
+    th, td {
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+  }
