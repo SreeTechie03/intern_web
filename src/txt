@@ -1,307 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { format } from 'date-fns';
-import { IndianRupee, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
-function PaymentHistory() {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const transactionsPerPage = 10;
-
-  const [email, setEmail] = useState('');
-  const [keyInput, setKeyInput] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [keyError, setKeyError] = useState(null);
-  const [emailError, setEmailError] = useState(null);
-  const [keySent, setKeySent] = useState(false);
-  const [verificationKey, setVerificationKey] = useState('');
-
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const razorpayAPI = axios.create({
-        baseURL: '/api', // Use the proxy path
-        auth: {
-          username: import.meta.env.VITE_RAZORPAY_KEY_ID,
-          password: import.meta.env.VITE_RAZORPAY_KEY_SECRET
-        },
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-
-      const response = await razorpayAPI.get('/payments', {
-        params: {
-          count: 100
-        }
-      });
-
-      setTransactions(response.data.items);
-    } catch (err) {
-      setError('Failed to fetch transactions. Please try again later.');
-      console.error('Error fetching transactions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchTransactions();
-    }
-  }, [isAuthenticated]);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'captured':
-        return 'bg-green-100 text-green-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      case 'refunded':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Pagination logic
-  const indexOfLastTransaction = currentPage * transactionsPerPage;
-  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
-  const currentTransactions = transactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
-  const totalPages = Math.ceil(transactions.length / transactionsPerPage);
-
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleEmailSubmit = async () => {
-    setEmailError(null);
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('Please enter a valid email address.');
-      return;
-    }
-
-    try {
-      // Simulating sending the key to the email (replace with actual email service)
-      const generatedKey = Math.random().toString(36).substr(2, 6); // Generate a random 6-character key
-      setVerificationKey(generatedKey);
-      
-      // Replace this with an actual API call to send the email (e.g., using an email service)
-      console.log(`Sending key ${generatedKey} to email: ${email}`);
-      
-      // Set key sent state to true to prompt the user for the key input
-      setKeySent(true);
-    } catch (error) {
-      setEmailError('Failed to send verification key. Please try again later.');
-    }
-  };
-
-  const handleKeySubmit = () => {
-    if (keyInput === verificationKey) {
-      setIsAuthenticated(true);
-      setKeyError(null);
-    } else {
-      setKeyError('Invalid key. Please try again.');
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-          {!keySent ? (
-            <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Email</h2>
-              {emailError && <p className="text-red-500 text-sm mb-4">{emailError}</p>}
-              <input
-                type="email"
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button
-                onClick={handleEmailSubmit}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
-              >
-                Submit
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Verification Key</h2>
-              {keyError && <p className="text-red-500 text-sm mb-4">{keyError}</p>}
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Enter the key sent to your email"
-                value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
-              />
-              <button
-                onClick={handleKeySubmit}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
-              >
-                Submit
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-          <div className="flex items-center justify-center text-red-500 mb-4">
-            <AlertCircle size={48} />
-          </div>
-          <p className="text-center text-gray-700">{error}</p>
-          <button
-            onClick={fetchTransactions}
-            className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2"
-          >
-            <RefreshCw size={20} />
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-          <button
-            onClick={fetchTransactions}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"
-            disabled={loading}
-          >
-            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="flex justify-center items-center">
-              <RefreshCw size={32} className="animate-spin text-blue-500" />
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentTransactions.map((transaction) => (
-                      <tr key={transaction.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {transaction.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div className="flex items-center gap-1">
-                            <IndianRupee size={16} />
-                            {(transaction.amount / 100).toFixed(2)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
-                            {transaction.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {transaction.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {transaction.contact}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {format(new Date(transaction.created_at * 1000), 'PPpp')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg shadow-lg">
-              <div className="flex items-center">
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{indexOfFirstTransaction + 1}</span> to{' '}
-                  <span className="font-medium">
-                    {Math.min(indexOfLastTransaction, transactions.length)}
-                  </span>{' '}
-                  of <span className="font-medium">{transactions.length}</span> transactions
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`p-2 rounded-md ${
-                    currentPage === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => paginate(index + 1)}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === index + 1
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`p-2 rounded-md ${
-                    currentPage === totalPages
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default PaymentHistory;
 
 
 ///LANDING PAGE
@@ -484,3 +181,707 @@ function Home() {
 }
 
 export default Home;
+
+
+
+
+//Teams
+
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Trash2, Edit3, Users, DollarSign, Wallet, HourglassIcon, TrendingUp, X, Calendar, UserPlus, Building2, Target, AlertTriangle } from 'lucide-react';
+
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const mockUsers = [
+  { id: 1, name: 'John Doe' },
+  { id: 2, name: 'Jane Smith' },
+  { id: 3, name: 'Mike Johnson' },
+  { id: 4, name: 'Sarah Williams' },
+  { id: 5, name: 'Alex Thompson' },
+  { id: 6, name: 'Emily Davis' },
+  { id: 7, name: 'Chris Wilson' },
+  { id: 8, name: 'Lisa Anderson' },
+];
+
+function AddTeamModal({ isOpen, onClose, onAddTeam }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    manager: '',
+    members: [],
+    targetMonth: '',
+    targetAmount: '',
+  });
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onAddTeam({
+      name: formData.name,
+      memberCount: formData.members.length,
+      revenue: parseFloat(formData.targetAmount) || 0,
+      totalPayments: 0,
+      receivedPayments: 0,
+      pending: parseFloat(formData.targetAmount) || 0,
+    });
+    setFormData({
+      name: '',
+      manager: '',
+      members: [],
+      targetMonth: '',
+      targetAmount: '',
+    });
+    setCurrentStep(1);
+    onClose();
+  };
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center space-x-2 mb-8">
+      {[1, 2, 3].map((step) => (
+        <div
+          key={step}
+          className={`flex items-center ${step !== 3 ? 'w-full' : ''}`}
+        >
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              step === currentStep
+                ? 'bg-blue-600 text-white'
+                : step < currentStep
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200 text-gray-600'
+            }`}
+          >
+            {step < currentStep ? '✓' : step}
+          </div>
+          {step !== 3 && (
+            <div
+              className={`h-1 w-full ${
+                step < currentStep ? 'bg-green-500' : 'bg-gray-200'
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="relative">
+              <Building2 className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter team name"
+              />
+            </div>
+            <div className="relative">
+              <Users className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <select
+                required
+                value={formData.manager}
+                onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all duration-200"
+              >
+                <option value="">Select team manager</option>
+                {mockUsers.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <UserPlus className="w-5 h-5" />
+                  Team Members
+                </h3>
+                <span className="text-sm text-gray-500">
+                  Selected: {formData.members.length}
+                </span>
+              </div>
+              <select
+                multiple
+                value={formData.members}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    members: Array.from(e.target.selectedOptions, (option) => option.value),
+                  })
+                }
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 h-48"
+              >
+                {mockUsers.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+                <span className="text-blue-500">Tip:</span>
+                Hold Ctrl/Cmd to select multiple members
+              </p>
+            </div>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="relative">
+              <Calendar className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <select
+                required
+                value={formData.targetMonth}
+                onChange={(e) => setFormData({ ...formData, targetMonth: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all duration-200"
+              >
+                <option value="">Select target month</option>
+                {months.map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="relative">
+              <Target className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="1000"
+                  value={formData.targetAmount}
+                  onChange={(e) => setFormData({ ...formData, targetAmount: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter target amount"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl max-w-xl w-full p-6 relative shadow-2xl animate-slideUp">
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 bg-white text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-50 rounded-full shadow-lg"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
+            <Users className="w-6 h-6 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Create New Team</h2>
+          <p className="text-gray-500 mt-1">Step {currentStep} of {totalSteps}</p>
+        </div>
+
+        {renderStepIndicator()}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {renderStepContent()}
+
+          <div className="flex justify-between items-center pt-6 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={prevStep}
+              className={`px-6 py-2.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium ${
+                currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 text-gray-600 hover:text-gray-800 transition-all duration-200"
+              >
+                Cancel
+              </button>
+              {currentStep === totalSteps ? (
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                >
+                  Create Team
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                >
+                  Continue
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ModifyTeamModal({ isOpen, onClose, onModify, team }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    manager: '',
+    members: [],
+    targetMonth: '',
+    targetAmount: '',
+  });
+
+  useEffect(() => {
+    if (team) {
+      setFormData({
+        name: team.name,
+        manager: team.manager || '',
+        members: team.members || [],
+        targetMonth: team.targetMonth || '',
+        targetAmount: String(team.revenue) || '',
+      });
+    }
+  }, [team]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onModify(team.id, {
+      name: formData.name,
+      memberCount: formData.members.length,
+      revenue: parseFloat(formData.targetAmount) || 0,
+      totalPayments: team.totalPayments,
+      receivedPayments: team.receivedPayments,
+      pending: parseFloat(formData.targetAmount) - team.receivedPayments,
+    });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl max-w-xl w-full p-6 relative shadow-2xl animate-slideUp">
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 bg-white text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-50 rounded-full shadow-lg"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-full mb-4">
+            <Users className="w-6 h-6 text-emerald-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Modify Team</h2>
+          <p className="text-gray-500 mt-1">Update team information</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
+            <div className="relative">
+              <Building2 className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter team name"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <UserPlus className="w-5 h-5" />
+                    Team Members
+                  </h3>
+                  <span className="text-sm text-gray-500">
+                    Selected: {formData.members.length}
+                  </span>
+                </div>
+                <select
+                  multiple
+                  value={formData.members}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      members: Array.from(e.target.selectedOptions, (option) => option.value),
+                    })
+                  }
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 h-48"
+                >
+                  {mockUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+                  <span className="text-emerald-500">Tip:</span>
+                  Hold Ctrl/Cmd to select multiple members
+                </p>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Target className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="1000"
+                  value={formData.targetAmount}
+                  onChange={(e) => setFormData({ ...formData, targetAmount: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter target amount"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end items-center gap-3 pt-6 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 text-gray-600 hover:text-gray-800 transition-all duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+            >
+              Update Team
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteTeamModal({ isOpen, onClose, onDelete, team }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl animate-slideUp">
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 bg-white text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-50 rounded-full shadow-lg"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Delete Team</h2>
+          <p className="text-gray-500 mt-2">
+            Are you sure you want to delete "{team?.name}"? This action cannot be undone.
+          </p>
+        </div>
+
+        <div className="flex justify-end items-center gap-3 pt-6 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-gray-600 hover:text-gray-800 transition-all duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onDelete(team.id);
+              onClose();
+            }}
+            className="px-6 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+          >
+            Delete Team
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Teams() {
+  const [teams, setTeams] = useState([
+    {
+      id: '1',
+      name: 'Development Team',
+      memberCount: 8,
+      revenue: 120000,
+      totalPayments: 95000,
+      receivedPayments: 85000,
+      pending: 10000,
+      progress: 85,
+    },
+    {
+      id: '2',
+      name: 'Design Team',
+      memberCount: 5,
+      revenue: 85000,
+      totalPayments: 65000,
+      receivedPayments: 60000,
+      pending: 5000,
+      progress: 92,
+    },
+  ]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+
+  const filteredTeams = teams.filter(team => 
+    team.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const handleDeleteTeam = (teamId) => {
+    setTeams(teams.filter(team => team.id !== teamId));
+  };
+
+  const handleModifyTeam = (teamId, updatedTeam) => {
+    setTeams(teams.map(team => 
+      team.id === teamId 
+        ? { 
+            ...team, 
+            ...updatedTeam,
+            progress: Math.floor((updatedTeam.receivedPayments / updatedTeam.revenue) * 100)
+          }
+        : team
+    ));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Teams Overview</h1>
+            <p className="mt-2 text-gray-600">Manage and monitor your team performance</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search teams..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64 pl-10 pr-4 py-2 bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 mb-8">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Team
+          </button>
+          <button
+            onClick={() => {
+              if (teams.length > 0) {
+                setSelectedTeam(teams[0]);
+                setIsDeleteModalOpen(true);
+              }
+            }}
+            className="flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <Trash2 className="w-5 h-5 mr-2" />
+            Delete Team
+          </button>
+          <button
+            onClick={() => {
+              if (teams.length > 0) {
+                setSelectedTeam(teams[0]);
+                setIsModifyModalOpen(true);
+              }
+            }}
+            className="flex items-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-full hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <Edit3 className="w-5 h-5 mr-2" />
+            Modify Team
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredTeams.map((team) => (
+            <div
+              key={team.id}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900">{team.name}</h3>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedTeam(team);
+                        setIsModifyModalOpen(true);
+                      }}
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedTeam(team);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
+                      <Users className="w-4 h-4 text-blue-600 mr-1" />
+                      <span className="text-blue-600 font-medium">{team.memberCount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center">
+                      <TrendingUp className="w-5 h-5 text-emerald-600 mr-3" />
+                      <span className="text-gray-600">Revenue</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{formatCurrency(team.revenue)}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-xl">
+                      <div className="flex items-center mb-2">
+                        <DollarSign className="w-4 h-4 text-emerald-600 mr-2" />
+                        <span className="text-sm text-emerald-600">Received</span>
+                      </div>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {formatCurrency(team.receivedPayments)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-orange-50 rounded-xl">
+                      <div className="flex items-center mb-2">
+                        <HourglassIcon className="w-4 h-4 text-orange-600 mr-2" />
+                        <span className="text-sm text-orange-600">Pending</span>
+                      </div>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {formatCurrency(team.pending)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm text-gray-600">Progress</span>
+                      <span className="text-sm font-medium text-gray-900">{team.progress}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+                        style={{ width: `${team.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <AddTeamModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddTeam={(team) => {
+          setTeams([...teams, { 
+            ...team, 
+            id: String(teams.length + 1),
+            progress: Math.floor((team.receivedPayments / team.revenue) * 100) || 0
+          }]);
+          setIsAddModalOpen(false);
+        }}
+      />
+
+      <DeleteTeamModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedTeam(null);
+        }}
+        onDelete={handleDeleteTeam}
+        team={selectedTeam}
+      />
+
+      <ModifyTeamModal
+        isOpen={isModifyModalOpen}
+        onClose={() => {
+          setIsModifyModalOpen(false);
+          setSelectedTeam(null);
+        }}
+        onModify={handleModifyTeam}
+        team={selectedTeam}
+      />
+    </div>
+  );
+}
+
+export default Teams;

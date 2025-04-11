@@ -3,8 +3,8 @@ import Home from "./Components/Pages/Home";
 import LandingPage from "./Components/Pages/Landingpage";
 import AdminDashboard from "./Components/Dashboard/AdminDashboard";
 import EmpDashboard from "./Components/Dashboard/EmpDashboard";
-import Leads from "./Components/Leads/Leads";
-import Sales from "./Components/Leads/Sales";
+import Operations from "./Components/Dashboard/Operations";
+import Teams from "./Components/Teams/Teams";
 import EmpManagement from "./Components/Pages/EmpManagement";
 import PaymentHistory from "./Components/Pages/PaymentHistory";
 import Staff from "./Components/Organization/Staff";
@@ -34,10 +34,10 @@ export function MainContent({ currentView }) {
         return <AdminDashboard />;
       case "emp dashboard":
         return <EmpDashboard />;
-      case "leads":
-        return <Leads />;
-      case "sales":
-        return <Sales />;
+      case "operations":
+        return <Operations />;
+      case "teams":
+        return <Teams />;
       case "emp management":
         return <EmpManagement />;
       case "payment history":

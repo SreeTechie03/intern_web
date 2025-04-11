@@ -2,7 +2,7 @@ import {
   Home, LayoutDashboard, GraduationCap, Monitor, Users, Building2,
   Bell, Building, Megaphone,History, Settings, Headphones, UserCog, BookCheck, UserPlus, Briefcase, 
   CalendarRange, ShoppingCart, BadgeHelp, MessageSquare, LineChart, 
-  CircleDollarSign, Cog, Shield,Phone
+  CircleDollarSign, Cog, Shield,Phone,SlidersHorizontal,UsersRound
 } from "lucide-react";
 
 export const menuItems = [
@@ -11,16 +11,13 @@ export const menuItems = [
     icon: LayoutDashboard, label: "Dashboard",
     children: [
       { icon: UserCog, label: "Admin Dashboard" },
-      { icon: Users, label: "Emp Dashboard" }
+      { icon: Users, label: "Emp Dashboard" },
+      { icon: SlidersHorizontal,label:"Operations"}
     ]
   },
 
   { 
-    icon: Headphones, label: "Leads",
-    children: [
-      { icon: UserPlus, label: "Leads" },
-      { icon: LineChart, label: "Sales" }
-    ]
+    icon: UsersRound, label: "Teams"
   },
   { icon: GraduationCap, label: "Emp Management" },
   { icon: History, label: "Payment History" },
