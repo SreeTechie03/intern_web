@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,6 +20,7 @@ import {
   Clock,
   CreditCard,
 } from 'lucide-react';
+import Admin from '../Department/Admin';
 
 // Mock Data
 const employees = [
@@ -156,7 +155,7 @@ const DataTable = ({ headers, data, columns }) => {
 };
 
 // Main App Component
-function App() {
+function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-[1600px] mx-auto space-y-8">
@@ -401,4 +400,4 @@ function App() {
   );
 }
 
-export default App;
+export default AdminDashboard;
