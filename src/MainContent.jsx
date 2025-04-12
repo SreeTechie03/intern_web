@@ -2,7 +2,7 @@ import React from "react";
 import Home from "./Components/Pages/Home";
 import LandingPage from "./Components/Pages/Landingpage";
 import AdminDashboard from "./Components/Dashboard/AdminDashboard";
-import EmpDashboard from "./Components/Dashboard/EmpDashboard";
+import EmpDashboard from "./Components/Dashboard/SalesEmp";
 import Operations from "./Components/Dashboard/Operations";
 import Teams from "./Components/Teams/Teams";
 import EmpManagement from "./Components/Pages/EmpManagement";
