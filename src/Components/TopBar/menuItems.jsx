@@ -11,7 +11,7 @@ export const menuItems = [
     icon: LayoutDashboard, label: "Dashboard",
     children: [
       { icon: UserCog, label: "Admin Dashboard" },
-      { icon: Users, label: "Emp Dashboard" },
+      { icon: Users, label: "Sales Emp Dashboard" },
       { icon: SlidersHorizontal,label:"Operations"}
     ]
   },

@@ -253,7 +253,7 @@ const mockEmployees = [
 ];
 
 // Main App Component
-function App() {
+function SalesEmp() {
   const [isLoading, setIsLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState('month');
   const [sortOption, setSortOption] = useState('sales');
@@ -315,4 +315,4 @@ function App() {
   );
 }
 
-export default App;
+export default SalesEmp;

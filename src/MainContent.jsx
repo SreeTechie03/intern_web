@@ -2,8 +2,8 @@ import React from "react";
 import Home from "./Components/Pages/Home";
 import LandingPage from "./Components/Pages/Landingpage";
 import AdminDashboard from "./Components/Dashboard/AdminDashboard";
-import EmpDashboard from "./Components/Dashboard/SalesEmp";
 import Operations from "./Components/Dashboard/Operations";
+import SalesEmpDashboard from "./Components/Dashboard/SalesEmpDashboard";
 import Teams from "./Components/Teams/Teams";
 import EmpManagement from "./Components/Pages/EmpManagement";
 import PaymentHistory from "./Components/Pages/PaymentHistory";
@@ -32,8 +32,8 @@ export function MainContent({ currentView }) {
         return <LandingPage />;
       case "admin dashboard":
         return <AdminDashboard />;
-      case "emp dashboard":
-        return <EmpDashboard />;
+      case "sales emp dashboard":
+        return <SalesEmpDashboard />;
       case "operations":
         return <Operations />;
       case "teams":

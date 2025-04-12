@@ -1,547 +1,395 @@
-import React, { useState, useEffect } from 'react';
-import { Bar, Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement } from 'chart.js';
-import { IndianRupee, RefreshCw, AlertCircle } from 'lucide-react';
-import { format, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
-import axios from 'axios';
-import './AdminDashboard.css';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
+import React from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
-);
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Area,
+  AreaChart,
+} from 'recharts';
+import {
+  DollarSign,
+  ShoppingCart,
+  Clock,
+  CreditCard,
+} from 'lucide-react';
 
-const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+// Mock Data
+const employees = [
+  { id: 1, name: 'John Doe', salesCount: 145, revenue: 285000 },
+  { id: 2, name: 'Jane Smith', salesCount: 132, revenue: 264000 },
+  { id: 3, name: 'Mike Johnson', salesCount: 128, revenue: 256000 },
+  { id: 4, name: 'Sarah Williams', salesCount: 120, revenue: 240000 },
+  { id: 5, name: 'Tom Brown', salesCount: 115, revenue: 230000 },
+];
 
-  // Fetch transactions from Razorpay API
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get('/api/payments', {
-        auth: {
-          username: import.meta.env.VITE_RAZORPAY_KEY_ID,
-          password: import.meta.env.VITE_RAZORPAY_KEY_SECRET
-        },
-        params: {
-          count: 100
-        }
-      });
-      setTransactions(response.data.items);
-    } catch (err) {
-      setError('Failed to fetch transactions. Please try again later.');
-      console.error('Error fetching transactions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const teams = [
+  { id: 1, name: 'Alpha Team', totalSales: 450, revenue: 900000 },
+  { id: 2, name: 'Beta Team', totalSales: 380, revenue: 760000 },
+  { id: 3, name: 'Gamma Team', totalSales: 350, revenue: 700000 },
+  { id: 4, name: 'Delta Team', totalSales: 320, revenue: 640000 },
+];
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+const salesTrends = [
+  { date: 'Jan', sales: 65, revenue: 130000 },
+  { date: 'Feb', sales: 75, revenue: 150000 },
+  { date: 'Mar', sales: 85, revenue: 170000 },
+  { date: 'Apr', sales: 95, revenue: 190000 },
+  { date: 'May', sales: 15, revenue: 2100 },
+  { date: 'Jun', sales: 115, revenue: 230000 },
+  { date: 'Jul', sales: 125, revenue: 250000 },
+  { date: 'Aug', sales: 135, revenue: 270000 },
+  { date: 'Sep', sales: 45, revenue: 2000 },
+  { date: 'Oct', sales: 155, revenue: 310000 },
+  { date: 'Nov', sales: 165, revenue: 330000 },
+  { date: 'Dec', sales: 175, revenue: 350000 },
+];
 
-  // Calculate payment metrics
-  const paymentMetrics = transactions.reduce((acc, transaction) => {
-    const amount = transaction.amount / 100;
-    if (transaction.status === 'captured') {
-      acc.completed += amount;
-      acc.completedCount++;
-    } else if (transaction.status === 'failed') {
-      acc.failed += amount;
-      acc.failedCount++;
-    } else {
-      acc.pending += amount;
-      acc.pendingCount++;
-    }
-    return acc;
-  }, { completed: 0, pending: 0, failed: 0, completedCount: 0, pendingCount: 0, failedCount: 0 });
+const salesTypes = [
+  { name: 'Pre-sales', value: 250 },
+  { name: 'Full Payments', value: 450 },
+  { name: 'Post Pending', value: 300 },
+];
 
-  // Generate monthly revenue data from transactions
-  const generateMonthlyRevenueData = () => {
-    const currentYear = new Date().getFullYear();
-    const months = eachMonthOfInterval({
-      start: startOfYear(new Date(currentYear, 0, 1)),
-      end: endOfYear(new Date(currentYear, 11, 31))
-    });
+const teamPerformance = [
+  { team: 'Alpha Team', sales: 450, revenue: 900000 },
+  { team: 'Beta Team', sales: 380, revenue: 760000 },
+  { team: 'Gamma Team', sales: 350, revenue: 700000 },
+  { team: 'Delta Team', sales: 320, revenue: 640000 },
+];
 
-    const monthlyData = months.map(month => {
-      const monthKey = format(month, 'MMM');
-      const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-      const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+const COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b'];
 
-      const successfulTransactions = transactions.filter(tx => {
-        const txDate = new Date(tx.created_at * 1000);
-        return tx.status === 'captured' && 
-               txDate >= monthStart && 
-               txDate <= monthEnd;
-      });
+// Components
+const colorVariants = {
+  indigo: 'bg-indigo-50 text-indigo-600',
+  cyan: 'bg-cyan-50 text-cyan-600',
+  emerald: 'bg-emerald-50 text-emerald-600',
+  amber: 'bg-amber-50 text-amber-600',
+};
 
-      const failedTransactions = transactions.filter(tx => {
-        const txDate = new Date(tx.created_at * 1000);
-        return tx.status === 'failed' && 
-               txDate >= monthStart && 
-               txDate <= monthEnd;
-      });
-
-      const successfulRevenue = successfulTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
-      const failedRevenue = failedTransactions.reduce((sum, tx) => sum + (tx.amount / 100), 0);
-      
-      return {
-        month: monthKey,
-        successful: successfulRevenue,
-        failed: failedRevenue
-      };
-    });
-
-    return monthlyData;
-  };
-
-  const monthlyRevenueData = generateMonthlyRevenueData();
-
-  // Mock data for other sections
-  const dashboardData = {
-    teams: [
-      { 
-        id: 1,
-        name: 'Alpha Squad', 
-        revenue: 11200000, 
-        members: 12,
-        activeTasks: 45, 
-        completionRate: 92,
-        employees: [
-          { id: 1, name: 'Ramana', position: 'Team Lead', joinDate: '2022-01-15' },
-          { id: 2, name: 'Abhiram', position: 'Developer', joinDate: '2022-03-10' }
-        ],
-        projects: ['Guntur Karam', 'Nannaku Prematho']
-      },
-      { 
-        id: 2,
-        name: 'Beta Squad', 
-        revenue: 1900000, 
-        members: 10,
-        activeTasks: 38, 
-        completionRate: 88,
-        employees: [
-          { id: 3, name: 'Daya', position: 'Team Lead', joinDate: '2022-02-20' },
-          { id: 4, name: 'Krishna', position: 'Designer', joinDate: '2022-04-05' }
-        ],
-        projects: ['Temper', 'Nannaku Prematho']
-      },
-      { 
-        id: 3,
-        name: 'Gamma Squad', 
-        revenue: 1750000, 
-        members: 8,
-        activeTasks: 32, 
-        completionRate: 90,
-        employees: [
-          { id: 5, name: 'Pushpa Raj', position: 'Team Lead', joinDate: '2022-05-12' },
-          { id: 6, name: 'Srivalli', position: 'Marketer', joinDate: '2022-06-18' }
-        ],
-        projects: ['Pushpa']
-      }
-    ],
-    allEmployees: [
-      { id: 1, name: 'Ramana', team: 'Alpha Squad', position: 'Team Lead', salary: 8500, joinDate: '2022-01-15' },
-      { id: 2, name: 'Abhiram', team: 'Alpha Squad', position: 'Developer', salary: 7500, joinDate: '2022-03-10' },
-      { id: 3, name: 'Daya', team: 'Beta Squad', position: 'Team Lead', salary: 8200, joinDate: '2022-02-20' },
-      { id: 4, name: 'Krishna', team: 'Beta Squad', position: 'Designer', salary: 6800, joinDate: '2022-04-05' },
-      { id: 5, name: 'Pushpa Raj', team: 'Gamma Squad', position: 'Team Lead', salary: 8000, joinDate: '2022-05-12' },
-      { id: 6, name: 'Srivalli', team: 'Gamma Squad', position: 'Marketer', salary: 6500, joinDate: '2022-06-18' }
-    ]
-  };
-
-  // Chart data
-  const revenueData = {
-    labels: monthlyRevenueData.map(data => data.month),
-    datasets: [
-      {
-        label: 'Successful Payments (₹)',
-        data: monthlyRevenueData.map(data => data.successful),
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        tension: 0.4,
-        fill: false
-      },
-      {
-        label: 'Failed Payments (₹)',
-        data: monthlyRevenueData.map(data => data.failed),
-        borderColor: '#ef4444',
-        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-        tension: 0.4,
-        fill: false
-      }
-    ]
-  };
-
-  const teamPerformanceData = {
-    labels: dashboardData.teams.map(team => team.name),
-    datasets: [{
-      label: 'Revenue (₹)',
-      data: dashboardData.teams.map(team => team.revenue / 100000),
-      backgroundColor: [
-        'rgba(74, 107, 223, 0.7)',
-        'rgba(243, 156, 18, 0.7)',
-        'rgba(231, 76, 60, 0.7)'
-      ],
-      borderColor: [
-        'rgba(74, 107, 223, 1)',
-        'rgba(243, 156, 18, 1)',
-        'rgba(231, 76, 60, 1)'
-      ],
-      borderWidth: 1
-    }]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { 
-        position: 'top',
-        labels: {
-          usePointStyle: true,
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return `${context.dataset.label.split(' (')[0]}: ₹${context.raw.toLocaleString()}`;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: function(value) {
-            return `₹${value.toLocaleString()}`;
-          }
-        }
-      }
-    },
-    interaction: {
-      mode: 'index',
-      intersect: false
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'captured': return 'status-completed';
-      case 'failed': return 'status-failed';
-      case 'refunded': return 'status-pending';
-      default: return 'status-pending';
-    }
-  };
-
-  const renderTeamTab = () => (
-    <div className="team-tab-content">
-      <h2>Team Management</h2>
-      <div className="team-cards-container">
-        {dashboardData.teams.map(team => (
-          <div key={team.id} className="team-card">
-            <div className="team-header">
-              <h3>{team.name}</h3>
-              <div className="team-stats">
-                <span>Revenue: ₹{team.revenue.toLocaleString()}</span>
-                <span>Members: {team.members}</span>
-                <span>Tasks: {team.activeTasks}</span>
-                <span>Completion: {team.completionRate}%</span>
-              </div>
-            </div>
-            
-            <div className="team-details">
-              <div className="team-members">
-                <h4>Key Members</h4>
-                <ul>
-                  {team.employees.map(member => (
-                    <li key={member.id}>
-                      <strong>{member.name}</strong>
-                      <span>{member.position}</span>
-                      <small>Joined: {format(new Date(member.joinDate), 'dd MMM yyyy')}</small>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="team-projects">
-                <h4>Current Projects</h4>
-                <ul>
-                  {team.projects.map((project, index) => (
-                    <li key={index}>{project}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderEmployeesTab = () => (
-    <div className="employees-tab">
-      <h2>Employee Directory</h2>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Team</th>
-              <th>Position</th>
-              <th>Salary</th>
-              <th>Join Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dashboardData.allEmployees.map(employee => (
-              <tr key={employee.id}>
-                <td>{employee.id}</td>
-                <td>{employee.name}</td>
-                <td>{employee.team}</td>
-                <td>{employee.position}</td>
-                <td>₹{employee.salary.toLocaleString()}</td>
-                <td>{format(new Date(employee.joinDate), 'dd MMM yyyy')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderTransactionsTab = () => (
-    <div className="transactions-tab">
-      <div className="flex justify-between items-center mb-4">
-        <h2>Transaction History</h2>
-        <button 
-          onClick={fetchTransactions} 
-          className="refresh-btn"
-          disabled={loading}
-        >
-          <RefreshCw size={18} className={loading ? 'spinner' : ''} />
-          Refresh
-        </button>
-      </div>
-
-      {error && (
-        <div className="error-message">
-          <AlertCircle size={20} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Email</th>
-              <th>Contact</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="6" className="loading-cell">
-                  <RefreshCw size={24} className="spinner" />
-                  Loading transactions...
-                </td>
-              </tr>
-            ) : transactions.length > 0 ? (
-              transactions.map(transaction => (
-                <tr key={transaction.id}>
-                  <td>{transaction.id}</td>
-                  <td>
-                    <IndianRupee size={14} />
-                    {(transaction.amount / 100).toFixed(2)}
-                  </td>
-                  <td>
-                    <span className={`status-badge ${getStatusColor(transaction.status)}`}>
-                      {transaction.status}
-                    </span>
-                  </td>
-                  <td>{transaction.email || 'N/A'}</td>
-                  <td>{transaction.contact || 'N/A'}</td>
-                  <td>{format(new Date(transaction.created_at * 1000), 'dd MMM yyyy')}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="empty-cell">
-                  No transactions found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderOverviewTab = () => (
-    <>
-      <div className="stats-row">
-        <div className="stat-card">
-          <h3>Total Revenue</h3>
-          <p>₹{(paymentMetrics.completed + paymentMetrics.pending).toLocaleString()}</p>
-          <div className="trend up">
-            {paymentMetrics.completedCount + paymentMetrics.pendingCount} transactions
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Completed Payments</h3>
-          <p>₹{paymentMetrics.completed.toLocaleString()}</p>
-          <div className="trend up">
-            {paymentMetrics.completedCount} successful
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Pending Payments</h3>
-          <p>₹{paymentMetrics.pending.toLocaleString()}</p>
-          <div className="trend neutral">
-            {paymentMetrics.pendingCount} in progress
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Failed Payments</h3>
-          <p>₹{paymentMetrics.failed.toLocaleString()}</p>
-          <div className="trend down">
-            {paymentMetrics.failedCount} failed
-          </div>
-        </div>
-      </div>
-
-      <div className="charts-row">
-        <div className="chart-card">
-          <h3>Payment Status Overview ({new Date().getFullYear()})</h3>
-          <div className="chart-container">
-            <Line data={revenueData} options={chartOptions} />
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <h3>Team Performance Comparison</h3>
-          <div className="chart-container">
-            <Bar data={teamPerformanceData} options={chartOptions} />
-          </div>
-        </div>
-      </div>
-
-      <div className="details-row">
-        <div className="teams-card">
-          <h3>Top Performance</h3>
-          <div className="team-list">
-            {dashboardData.teams.flatMap(team => 
-              team.employees.map(employee => ({
-                ...employee,
-                teamName: team.name,
-                projects: team.projects
-              }))
-            ).slice(0, 5).map((employee, index) => (
-              <div className="team-member" key={index}>
-                <div className="member-info">
-                  <h4>{employee.name} – {employee.projects[0]}</h4>
-                  <p>{employee.teamName}</p>
-                </div>
-                <div className="revenue-info">
-                  <p>Revenue Contribution</p>
-                  <p>₹{(employee.teamName === 'Alpha Squad' ? 198450 : 
-                        employee.teamName === 'Beta Squad' ? 187600 : 176900).toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="transactions-card">
-          <h3>Recent Transactions</h3>
-          <div className="transaction-list">
-            {transactions.slice(0, 4).map((transaction, index) => (
-              <div className="transaction" key={index}>
-                <h4>Transaction #{transaction.id.slice(0, 8)}</h4>
-                <p>{format(new Date(transaction.created_at * 1000), 'dd MMM yyyy')}</p>
-                <div className={`status ${transaction.status.toLowerCase()}`}>
-                  {transaction.status}
-                </div>
-                <div className="amount">
-                  <IndianRupee size={14} />
-                  {(transaction.amount / 100).toFixed(2)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderTabContent = () => {
-    switch(activeTab) {
-      case 'Team': return renderTeamTab();
-      case 'Employees': return renderEmployeesTab();
-      case 'Transactions': return renderTransactionsTab();
-      default: return renderOverviewTab();
-    }
-  };
-
+const SummaryCard = ({ icon, label, value, trend, color = 'indigo' }) => {
   return (
-    <div className="admin-dashboard">
-      <header className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <div className="search-bar">
-          <input type="text" placeholder="Type here to search" />
-        </div>
-      </header>
-
-      <nav className="dashboard-nav">
-        <ul>
-          {['Overview', 'Team', 'Employees', 'Transactions'].map((tab) => (
-            <li 
-              key={tab}
-              className={activeTab === tab ? 'active' : ''}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div className="dashboard-content">
-        {renderTabContent()}
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between">
+        <div className={`p-3 rounded-lg ${colorVariants[color]}`}>{icon}</div>
+        {trend !== undefined && (
+          <span 
+            className={`text-sm font-medium px-2.5 py-0.5 rounded-full ${
+              trend >= 0 
+                ? 'bg-emerald-50 text-emerald-600' 
+                : 'bg-red-50 text-red-600'
+            }`}
+          >
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
       </div>
-
-      <footer className="dashboard-footer">
-        <div className="stock-info">
-          <span>USD/INR +0.30%</span>
-        </div>
-        <div className="datetime">
-          <span>{format(new Date(), 'HH:mm dd-MM-yyyy')}</span>
-        </div>
-      </footer>
+      <h3 className="mt-4 text-2xl font-bold text-gray-900">{value}</h3>
+      <p className="text-sm font-medium text-gray-500 mt-1">{label}</p>
     </div>
   );
 };
 
-export default AdminDashboard;
+const DataTable = ({ headers, data, columns }) => {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            {headers.map((header, index) => (
+              <th
+                key={index}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((row, index) => (
+            <tr 
+              key={index}
+              className={`hover:bg-gray-50 transition-colors duration-150 ${
+                index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+              }`}
+            >
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
+                >
+                  {column === 'revenue' ? (
+                    <span className="font-medium text-gray-900">
+                      ${row[column].toLocaleString()}
+                    </span>
+                  ) : (
+                    row[column]
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Main App Component
+function App() {
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        {/* Page Title */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="mt-2 text-gray-600">Track your business performance and growth</p>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SummaryCard
+            icon={<ShoppingCart className="w-6 h-6" />}
+            label="Total Sales"
+            value="1,234"
+            trend={12}
+            color="indigo"
+          />
+          <SummaryCard
+            icon={<Clock className="w-6 h-6" />}
+            label="Pre-Sales"
+            value="250"
+            trend={8}
+            color="cyan"
+          />
+          <SummaryCard
+            icon={<CreditCard className="w-6 h-6" />}
+            label="Full Payments"
+            value="450"
+            trend={15}
+            color="emerald"
+          />
+          <SummaryCard
+            icon={<DollarSign className="w-6 h-6" />}
+            label="Total Revenue"
+            value="$3,000,000"
+            trend={10}
+            color="amber"
+          />
+        </div>
+
+        {/* Main Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Sales Trends */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Sales & Revenue Trends</h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={salesTrends}>
+                  <defs>
+                    <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="date" stroke="#6b7280" />
+                  <YAxis yAxisId="left" stroke="#6b7280" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#6b7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    }}
+                  />
+                  <Legend />
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#6366f1"
+                    fill="url(#salesGradient)"
+                    strokeWidth={2}
+                    name="Sales"
+                  />
+                  <Area
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#10b981"
+                    fill="url(#revenueGradient)"
+                    strokeWidth={2}
+                    name="Revenue"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Sales Distribution */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Sales Distribution</h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={salesTypes}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {salesTypes.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Tables Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-xl font-semibold text-gray-900">Top Performing Employees</h2>
+              <p className="mt-1 text-sm text-gray-500">Based on sales performance and revenue generated</p>
+            </div>
+            <DataTable
+              headers={['Name', 'Sales Count', 'Revenue']}
+              data={employees}
+              columns={['name', 'salesCount', 'revenue']}
+            />
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-xl font-semibold text-gray-900">Top Teams</h2>
+              <p className="mt-1 text-sm text-gray-500">Ranked by total sales and revenue</p>
+            </div>
+            <DataTable
+              headers={['Team Name', 'Total Sales', 'Revenue']}
+              data={teams}
+              columns={['name', 'totalSales', 'revenue']}
+            />
+          </div>
+        </div>
+
+        {/* Team Performance */}
+        <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-2xl font-bold text-gray-800">Team Performance Metrics</h2>
+    <div className="flex space-x-4">
+      <span className="flex items-center">
+        <span className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></span>
+        <span className="text-sm text-gray-600">Sales</span>
+      </span>
+      <span className="flex items-center">
+        <span className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span>
+        <span className="text-sm text-gray-600">Revenue</span>
+      </span>
+    </div>
+  </div>
+  
+  <div className="h-72">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={teamPerformance}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        barSize={28}
+      >
+        <CartesianGrid vertical={false} stroke="#f3f4f6" />
+        <XAxis 
+          dataKey="team" 
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: '#6b7280', fontSize: 12 }}
+        />
+        <YAxis 
+          yAxisId="left"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: '#6b7280', fontSize: 12 }}
+        />
+        <YAxis 
+          yAxisId="right" 
+          orientation="right"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: '#6b7280', fontSize: 12 }}
+        />
+        <Tooltip
+          contentStyle={{
+            background: 'rgba(255, 255, 255, 0.96)',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            padding: '12px',
+          }}
+          itemStyle={{ color: '#1f2937' }}
+          labelStyle={{ fontWeight: 'bold', color: '#111827' }}
+        />
+        <Bar 
+          yAxisId="left" 
+          dataKey="sales" 
+          fill="#6366f1" 
+          name="Sales (units)" 
+          radius={[6, 6, 0, 0]}
+          animationDuration={1500}
+        />
+        <Bar 
+          yAxisId="right" 
+          dataKey="revenue" 
+          fill="#10b981" 
+          name="Revenue ($)" 
+          radius={[6, 6, 0, 0]}
+          animationDuration={1500}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+  
+  <div className="mt-4 flex justify-end">
+    <select className="text-sm border border-gray-300 rounded-md px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100">
+      <option>Last 7 days</option>
+      <option>Last 30 days</option>
+      <option>This Quarter</option>
+    </select>
+  </div>
+</div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
