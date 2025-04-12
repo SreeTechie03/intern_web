@@ -37,6 +37,8 @@ const teams = [
   { id: 2, name: 'Beta Team', totalSales: 380, revenue: 760000 },
   { id: 3, name: 'Gamma Team', totalSales: 350, revenue: 700000 },
   { id: 4, name: 'Delta Team', totalSales: 320, revenue: 640000 },
+  { id: 5, name: 'Epsilon Team', totalSales: 300, revenue: 600000 },
+  
 ];
 
 const salesTrends = [
@@ -65,6 +67,13 @@ const teamPerformance = [
   { team: 'Beta Team', sales: 380, revenue: 760000 },
   { team: 'Gamma Team', sales: 350, revenue: 700000 },
   { team: 'Delta Team', sales: 320, revenue: 640000 },
+  { team: 'Epsilon Team', sales: 300, revenue: 600000 },
+  { team: 'Zeta Team', sales: 280, revenue: 560000 },
+  { team: 'Eta Team', sales: 260, revenue: 520000 },
+  { team: 'Theta Team', sales: 240, revenue: 480000 },
+  { team: 'Iota Team', sales: 220, revenue: 440000 },
+  { team: 'Kappa Team', sales: 200, revenue: 400000 },
+
 ];
 
 const COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b'];
