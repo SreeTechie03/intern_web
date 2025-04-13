@@ -20,7 +20,6 @@ import {
   Clock,
   CreditCard,
 } from 'lucide-react';
-import Admin from '../Department/Admin';
 
 // Mock Data
 const employees = [

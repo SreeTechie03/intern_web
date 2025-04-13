@@ -30,21 +30,30 @@ const Faqs = () => {
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">Frequently Asked Questions</h1>
       <div className="space-y-4">
-        {faqs.map((faq, index) => (
-          <div key={index} className="bg-white shadow-lg rounded-lg p-4">
-            <div
-              className="cursor-pointer text-xl font-medium text-gray-700 mb-2 hover:text-blue-600"
-              onClick={() => toggleFaq(index)}
-            >
-              {faq.question}
-            </div>
-            {activeIndex === index && (
-              <div className="text-gray-600 mt-2">
-                <p>{faq.answer}</p>
+        {faqs.length === 0 ? (
+          <p className="text-gray-500 text-center">No FAQs available at the moment. Please check back later.</p>
+        ) : (
+          faqs.map((faq, index) => (
+            <div key={index} className="bg-white shadow-lg rounded-lg p-4">
+              <div
+                className="cursor-pointer text-xl font-medium text-gray-700 mb-2 hover:text-blue-600 border-b pb-2"
+                onClick={() => toggleFaq(index)}
+                onKeyDown={(e) => e.key === 'Enter' && toggleFaq(index)}
+                role="button"
+                tabIndex={0}
+                aria-expanded={activeIndex === index}
+                aria-controls={`faq-answer-${index}`}
+              >
+                {faq.question}
               </div>
-            )}
-          </div>
-        ))}
+              {activeIndex === index && (
+                <div id={`faq-answer-${index}`} className="text-gray-600 mt-4 pl-4 border-l-2 border-blue-500">
+                  <p>{faq.answer}</p>
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

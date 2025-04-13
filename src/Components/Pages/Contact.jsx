@@ -14,6 +14,13 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
 
+    if (!import.meta.env.VITE_WEB3FORMS_ACCESS_KEY) {
+      console.error("Web3Forms access key is missing.");
+      setSuccess("Configuration error. Please try again later.");
+      setLoading(false);
+      return;
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append("access_key", import.meta.env.VITE_WEB3FORMS_ACCESS_KEY);
     formDataToSend.append("name", formData.name);
@@ -34,7 +41,7 @@ const Contact = () => {
       }
     } catch (error) {
       console.error("Web3Forms Error:", error);
-      setSuccess("Something went wrong, please try again.");
+      setSuccess("An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -49,16 +56,50 @@ const Contact = () => {
           {success && <p className="text-green-600 mt-2">{success}</p>}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <input className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" 
+            <input
+              aria-label="Your Name"
+              className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" 
               type="text" name="name" placeholder="Your Name" value={formData.name} onChange={handleChange} required />
-            <input className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" 
+            <input
+              aria-label="Your Email"
+              className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" 
               type="email" name="email" placeholder="Your Email" value={formData.email} onChange={handleChange} required />
-            <textarea className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 h-32 resize-none" 
+            <textarea
+              aria-label="Your Message"
+              className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 h-32 resize-none" 
               name="message" placeholder="Your Message" value={formData.message} onChange={handleChange} required />
-            <button type="submit" 
+            <button
+              aria-label="Send Message"
+              type="submit" 
               className={`w-full bg-blue-600 text-white py-3 px-6 rounded-lg transition ${loading ? 'opacity-50' : 'hover:bg-blue-700'}`} 
               disabled={loading}>
-              {loading ? "Sending..." : "Send Message"}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
+                  </svg>
+                  Sending...
+                </span>
+              ) : (
+                "Send Message"
+              )}
             </button>
           </form>
         </div>
@@ -76,7 +117,13 @@ const Contact = () => {
               <span>+91 7892227891</span>
             </div>
             <div className="flex items-center space-x-3">
-              <a href="https://maps.app.goo.gl/mrFH6CaLtY2dp5PD8?g_st=iw" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3">
+              <a
+                href="https://maps.app.goo.gl/mrFH6CaLtY2dp5PD8?g_st=iw"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View location on Google Maps"
+                className="flex items-center space-x-3"
+              >
                 <MapPin className="w-6 h-6 cursor-pointer" />
                 <span>Bengaluru South, Karnataka</span>
               </a>
