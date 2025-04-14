@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {BarChart3,ShoppingCart,Clock,CheckCircle,ArrowUpRight} from 'lucide-react';
-import {AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,BarChart,Bar,Legend} from 'recharts';
+import {BarChart3, ShoppingCart, Clock, CheckCircle, ArrowUpRight} from 'lucide-react';
+import {AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend} from 'recharts';
 
 // MetricCard Component
 const MetricCard = ({ title, count, trend, period, icon: Icon, color }) => {
@@ -36,14 +36,14 @@ const MetricCard = ({ title, count, trend, period, icon: Icon, color }) => {
 };
 
 // Export utility function
-const exportToCSV = (metrics) => {
+const exportToCSV = (metrics, selectedPeriod) => {
   const headers = ['Metric', 'Count', 'Trend', 'Period'];
   
   const rows = [
-    ['Total Sales', metrics.totalSales.count, metrics.totalSales.trend, metrics.totalSales.period],
-    ['Pre-Sales', metrics.preSales.count, metrics.preSales.trend, metrics.preSales.period],
-    ['Post-Pending Sales', metrics.postPendingSales.count, metrics.postPendingSales.trend, metrics.postPendingSales.period],
-    ['Fully Received Sales', metrics.fullyReceivedSales.count, metrics.fullyReceivedSales.trend, metrics.fullyReceivedSales.period],
+    ['Total Sales', metrics.totalSales.count, metrics.totalSales.trend, selectedPeriod],
+    ['Pre-Sales', metrics.preSales.count, metrics.preSales.trend, selectedPeriod],
+    ['Post-Pending Sales', metrics.postPendingSales.count, metrics.postPendingSales.trend, selectedPeriod],
+    ['Fully Received Sales', metrics.fullyReceivedSales.count, metrics.fullyReceivedSales.trend, selectedPeriod],
   ];
 
   const csvContent = [
@@ -56,62 +56,123 @@ const exportToCSV = (metrics) => {
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', `operations_metrics_${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', `operations_metrics_${selectedPeriod}_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
 
-// Sample data for charts
-const monthlyData = [
-  { name: 'Jan', totalSales: 1000, preSales: 400, postPending: 300, fullyReceived: 300 },
-  { name: 'Feb', totalSales: 1200, preSales: 500, postPending: 350, fullyReceived: 350 },
-  { name: 'Mar', totalSales: 1100, preSales: 450, postPending: 325, fullyReceived: 325 },
-  { name: 'Apr', totalSales: 1300, preSales: 550, postPending: 375, fullyReceived: 375 },
-  { name: 'May', totalSales: 1400, preSales: 600, postPending: 400, fullyReceived: 400 },
-  { name: 'Jun', totalSales: 1284, preSales: 456, postPending: 284, fullyReceived: 544 },
-  { name: 'Jul', totalSales: 1500, preSales: 700, postPending: 450, fullyReceived: 450 },
-  { name: 'Aug', totalSales: 1600, preSales: 800, postPending: 500, fullyReceived: 500 },
-  { name: 'Sep', totalSales: 1700, preSales: 900, postPending: 550, fullyReceived: 550 },
-  { name: 'Oct', totalSales: 1800, preSales: 1000, postPending: 600, fullyReceived: 600 },
-  { name: 'Nov', totalSales: 1900, preSales: 1100, postPending: 650, fullyReceived: 650 },
-  { name: 'Dec', totalSales: 2000, preSales: 1200, postPending: 700, fullyReceived: 700 },
-];
+// Sample data generator for different periods
+const generateData = (period) => {
+  let data = [];
+  const now = new Date();
+  let dataPoints;
+  let interval;
+  
+  switch(period) {
+    case '7d':
+      dataPoints = 7;
+      interval = 'day';
+      break;
+    case '1m':
+      dataPoints = 30;
+      interval = 'day';
+      break;
+    case '3m':
+      dataPoints = 12;
+      interval = 'week';
+      break;
+    case '1y':
+      dataPoints = 12;
+      interval = 'month';
+      break;
+    default:
+      dataPoints = 30;
+      interval = 'day';
+  }
+
+  for (let i = dataPoints - 1; i >= 0; i--) {
+    const date = new Date(now);
+    if (interval === 'day') {
+      date.setDate(date.getDate() - i);
+    } else if (interval === 'week') {
+      date.setDate(date.getDate() - (i * 7));
+    } else {
+      date.setMonth(date.getMonth() - i);
+    }
+
+    const baseValue = 1000 + Math.random() * 1000;
+    data.push({
+      name: interval === 'month' 
+        ? date.toLocaleString('default', { month: 'short' })
+        : date.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
+      totalSales: Math.round(baseValue),
+      preSales: Math.round(baseValue * 0.4),
+      postPending: Math.round(baseValue * 0.3),
+      fullyReceived: Math.round(baseValue * 0.3)
+    });
+  }
+  
+  return data;
+};
 
 // Dashboard Component
 function Dashboard() {
   const [metrics, setMetrics] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('1m');
+  const [chartData, setChartData] = useState([]);
+
+  const periods = [
+    { value: '7d', label: '7 Days' },
+    { value: '1m', label: '1 Month' },
+    { value: '3m', label: '3 Months' },
+    { value: '1y', label: '1 Year' },
+  ];
 
   useEffect(() => {
-    setTimeout(() => {
+    // Simulate API call with different metrics based on period
+    const fetchData = () => {
+      const data = generateData(selectedPeriod);
+      setChartData(data);
+      
+      const lastValue = data[data.length - 1];
+      const previousValue = data[data.length - 2];
+      
+      const calculateTrend = (current, previous) => {
+        const trend = ((current - previous) / previous) * 100;
+        return trend > 0 ? `+${trend.toFixed(1)}%` : `${trend.toFixed(1)}%`;
+      };
+
       setMetrics({
         totalSales: {
-          count: 1284,
-          trend: "+12.5%",
-          period: "This month"
+          count: lastValue.totalSales,
+          trend: calculateTrend(lastValue.totalSales, previousValue.totalSales),
+          period: periods.find(p => p.value === selectedPeriod).label
         },
         preSales: {
-          count: 456,
-          trend: "+8.2%",
-          period: "This month"
+          count: lastValue.preSales,
+          trend: calculateTrend(lastValue.preSales, previousValue.preSales),
+          period: periods.find(p => p.value === selectedPeriod).label
         },
         postPendingSales: {
-          count: 284,
-          trend: "-3.1%",
-          period: "This month"
+          count: lastValue.postPending,
+          trend: calculateTrend(lastValue.postPending, previousValue.postPending),
+          period: periods.find(p => p.value === selectedPeriod).label
         },
         fullyReceivedSales: {
-          count: 544,
-          trend: "+15.8%",
-          period: "This month"
+          count: lastValue.fullyReceived,
+          trend: calculateTrend(lastValue.fullyReceived, previousValue.fullyReceived),
+          period: periods.find(p => p.value === selectedPeriod).label
         }
       });
-    }, 1000);
-  }, []);
+    };
+
+    fetchData();
+  }, [selectedPeriod]);
 
   const handleExport = () => {
     if (metrics) {
-      exportToCSV(metrics);
+      exportToCSV(metrics, periods.find(p => p.value === selectedPeriod).label);
     }
   };
 
@@ -162,13 +223,26 @@ function Dashboard() {
             <h1 className="text-2xl font-semibold text-gray-900">
               Operations Overview
             </h1>
-            <button
-              onClick={handleExport}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <ArrowUpRight className="w-4 h-4" />
-              Export Data
-            </button>
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {periods.map((period) => (
+                  <option key={period.value} value={period.value}>
+                    {period.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleExport}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                Export Data
+              </button>
+            </div>
           </div>
           <p className="text-sm text-gray-500">
             Last updated {new Date().toLocaleString()}
@@ -196,7 +270,7 @@ function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Total Sales Trend</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData}>
+                <AreaChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -218,7 +292,7 @@ function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Distribution</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
