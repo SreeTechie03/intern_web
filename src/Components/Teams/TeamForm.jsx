@@ -1,20 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
   const [formData, setFormData] = useState({
     name: '',
     manager: '',
-    members: '',
+    members: [],
     target_month: '',
     target_amount: ''
   });
+
+  const [employee, setEmployee] = useState([]);
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      const { data, error } = await supabase.from('employee').select('name');
+      if (error) console.error('Error fetching employee:', error);
+      else setEmployee(data.map(emp => emp.name));
+    };
+
+    fetchEmployee();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         ...initialData,
-        members: initialData.members.join(', '),
+        members: initialData.members || [],
         target_month: new Date(initialData.target_month).toISOString().split('T')[0]
       });
     }
@@ -28,11 +46,15 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
     }));
   };
 
+  const handleMultiSelectChange = (e) => {
+    const selected = Array.from(e.target.selectedOptions, o => o.value);
+    setFormData(prev => ({ ...prev, members: selected }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const processedData = {
       ...formData,
-      members: formData.members.split(',').map(member => member.trim()),
       target_amount: Number(formData.target_amount)
     };
     onSubmit(processedData);
@@ -45,10 +67,7 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
           <h2 className="text-2xl font-bold text-gray-900">
             {isEdit ? 'Edit Team' : 'Create New Team'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100">
             <X size={20} />
           </button>
         </div>
@@ -60,9 +79,9 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-              placeholder="Enter team name"
               required
+              className="w-full px-4 py-3 rounded-lg border-2"
+              placeholder="Enter team name"
             />
           </div>
           <div>
@@ -72,27 +91,29 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
               name="manager"
               value={formData.manager}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-              placeholder="Enter manager name"
               required
+              className="w-full px-4 py-3 rounded-lg border-2"
+              placeholder="Enter manager name"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Team Members
-              <span className="text-gray-500 text-sm font-normal ml-2">
-                (comma-separated)
-              </span>
+              Team Members <span className="text-gray-500 text-sm font-normal ml-2">(Hold Ctrl/Cmd to select multiple)</span>
             </label>
-            <input
-              type="text"
+            <select
               name="members"
+              multiple
               value={formData.members}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-              placeholder="John Doe, Jane Smith, ..."
+              onChange={handleMultiSelectChange}
+              className="w-full px-4 py-3 rounded-lg border-2"
               required
-            />
+            >
+              {employee.map(name => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Target Month</label>
@@ -101,8 +122,8 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
               name="target_month"
               value={formData.target_month}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
               required
+              className="w-full px-4 py-3 rounded-lg border-2"
             />
           </div>
           <div>
@@ -114,24 +135,17 @@ function TeamForm({ onSubmit, onClose, initialData, isEdit }) {
                 name="target_amount"
                 value={formData.target_amount}
                 onChange={handleChange}
-                className="w-full pl-8 pr-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                placeholder="Enter target amount"
                 required
+                className="w-full pl-8 pr-4 py-3 rounded-lg border-2"
+                placeholder="Enter target amount"
               />
             </div>
           </div>
           <div className="flex justify-end gap-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-            >
+            <button type="button" onClick={onClose} className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg">
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-md hover:shadow-lg"
-            >
+            <button type="submit" className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
               {isEdit ? 'Update Team' : 'Create Team'}
             </button>
           </div>
