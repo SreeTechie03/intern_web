@@ -23,7 +23,6 @@ import Notifications from "./Components/Pages/Notifications";
 import SupportTickets from "./Components/Pages/SupportTickets";
 import Contact from "./Components/Pages/Contact";
 import Faqs from "./Components/Pages/Faqs";
-import It from "./Components/Department/It";
 export function MainContent({ currentView }) {
   const renderContent = () => {
     switch (currentView.toLowerCase()) {
