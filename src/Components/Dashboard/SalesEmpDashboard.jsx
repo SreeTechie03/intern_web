@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import * as Icons from 'lucide-react';
 import { Calendar, SortAsc, Medal } from 'lucide-react';
 
-// MetricCard Component
 const MetricCard = ({ metric, isLoading }) => {
   const IconComponent = Icons[metric.icon];
 
@@ -39,21 +38,6 @@ const MetricCard = ({ metric, isLoading }) => {
   );
 };
 
-MetricCard.propTypes = {
-  metric: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    value: PropTypes.number.isRequired,
-    trend: PropTypes.number.isRequired,
-    icon: PropTypes.string.isRequired
-  }).isRequired,
-  isLoading: PropTypes.bool
-};
-
-MetricCard.defaultProps = {
-  isLoading: false
-};
-
-// FilterBar Component
 const FilterBar = ({
   timeFilter,
   sortOption,
@@ -99,14 +83,6 @@ const FilterBar = ({
   );
 };
 
-FilterBar.propTypes = {
-  timeFilter: PropTypes.oneOf(['week', 'month', 'quarter']).isRequired,
-  sortOption: PropTypes.oneOf(['sales', 'revenue']).isRequired,
-  onTimeFilterChange: PropTypes.func.isRequired,
-  onSortOptionChange: PropTypes.func.isRequired
-};
-
-// LeaderboardTable Component
 const LeaderboardTable = ({ employees, isLoading }) => {
   if (isLoading) {
     return (
@@ -181,24 +157,6 @@ const LeaderboardTable = ({ employees, isLoading }) => {
   );
 };
 
-LeaderboardTable.propTypes = {
-  employees: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    rank: PropTypes.number.isRequired,
-    salesCount: PropTypes.number.isRequired,
-    revenue: PropTypes.number.isRequired,
-    avatar: PropTypes.string,
-    department: PropTypes.string.isRequired
-  })).isRequired,
-  isLoading: PropTypes.bool
-};
-
-LeaderboardTable.defaultProps = {
-  isLoading: false
-};
-
-// Mock Data
 const mockMetrics = [
   { title: 'Total Sales Count', value: 856, trend: 12.5, icon: 'BarChart3' },
   { title: 'Pre Sales', value: 245, trend: 8.2, icon: 'Users' },
@@ -207,71 +165,169 @@ const mockMetrics = [
   { title: 'Monthly Target', value: 1000, trend: 0, icon: 'Target' },
 ];
 
-const mockEmployees = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    rank: 1,
-    salesCount: 156,
-    revenue: 285000,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    department: 'Enterprise Sales'
-  },
-  {
-    id: '2',
-    name: 'Michael Chen',
-    rank: 2,
-    salesCount: 143,
-    revenue: 262000,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    department: 'SMB Sales'
-  },
-  {
-    id: '3',
-    name: 'Emily Rodriguez',
-    rank: 3,
-    salesCount: 138,
-    revenue: 251000,
-    department: 'Enterprise Sales'
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    rank: 4,
-    salesCount: 125,
-    revenue: 228000,
-    department: 'SMB Sales'
-  },
-  {
-    id: '5',
-    name: 'Lisa Thompson',
-    rank: 5,
-    salesCount: 119,
-    revenue: 215000,
-    department: 'Enterprise Sales'
-  },
-];
+const mockEmployeesByPeriod = {
+  week: [
+    {
+      id: '1',
+      name: 'Alex Turner',
+      rank: 1,
+      salesCount: 42,
+      revenue: 78000,
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '2',
+      name: 'Nina Patel',
+      rank: 2,
+      salesCount: 38,
+      revenue: 71000,
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      department: 'SMB Sales'
+    },
+    {
+      id: '3',
+      name: 'Marcus Wong',
+      rank: 3,
+      salesCount: 35,
+      revenue: 65000,
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '4',
+      name: 'Sophie Martinez',
+      rank: 4,
+      salesCount: 32,
+      revenue: 59000,
+      department: 'SMB Sales'
+    },
+    {
+      id: '5',
+      name: 'James Wilson',
+      rank: 5,
+      salesCount: 30,
+      revenue: 55000,
+      department: 'Enterprise Sales'
+    },
+  ],
+  month: [
+    {
+      id: '6',
+      name: 'Sarah Johnson',
+      rank: 1,
+      salesCount: 156,
+      revenue: 285000,
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '7',
+      name: 'Michael Chen',
+      rank: 2,
+      salesCount: 143,
+      revenue: 262000,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      department: 'SMB Sales'
+    },
+    {
+      id: '8',
+      name: 'Emily Rodriguez',
+      rank: 3,
+      salesCount: 138,
+      revenue: 251000,
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '9',
+      name: 'David Kim',
+      rank: 4,
+      salesCount: 125,
+      revenue: 228000,
+      department: 'SMB Sales'
+    },
+    {
+      id: '10',
+      name: 'Lisa Thompson',
+      rank: 5,
+      salesCount: 119,
+      revenue: 215000,
+      department: 'Enterprise Sales'
+    },
+  ],
+  quarter: [
+    {
+      id: '11',
+      name: 'Robert Zhang',
+      rank: 1,
+      salesCount: 425,
+      revenue: 780000,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '12',
+      name: 'Isabella Santos',
+      rank: 2,
+      salesCount: 398,
+      revenue: 725000,
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '13',
+      name: 'Thomas Anderson',
+      rank: 3,
+      salesCount: 376,
+      revenue: 688000,
+      department: 'SMB Sales'
+    },
+    {
+      id: '14',
+      name: 'Maria Garcia',
+      rank: 4,
+      salesCount: 354,
+      revenue: 645000,
+      department: 'Enterprise Sales'
+    },
+    {
+      id: '15',
+      name: 'Kevin O\'Brien',
+      rank: 5,
+      salesCount: 342,
+      revenue: 622000,
+      department: 'SMB Sales'
+    },
+  ]
+};
 
-// Main App Component
 function SalesEmp() {
   const [isLoading, setIsLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState('month');
+  const [timeFilter, setTimeFilter] = useState('week');
   const [sortOption, setSortOption] = useState('sales');
   const [metrics, setMetrics] = useState([]);
   const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
-    // Simulate API call
     const loadData = async () => {
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 1500));
       setMetrics(mockMetrics);
-      setEmployees(mockEmployees);
+      
+      const periodEmployees = mockEmployeesByPeriod[timeFilter];
+      
+      const sortedEmployees = [...periodEmployees].sort((a, b) => {
+        if (sortOption === 'sales') {
+          return b.salesCount - a.salesCount;
+        }
+        return b.revenue - a.revenue;
+      });
+      
+      setEmployees(sortedEmployees);
       setIsLoading(false);
     };
 
     loadData();
-  }, [timeFilter]);
+  }, [timeFilter, sortOption]);
 
   return (
     <div className="min-h-screen bg-gray-50">
