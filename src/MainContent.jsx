@@ -17,12 +17,13 @@ import Marketing from "./Components/Department/Marketing";
 import Hr from "./Components/Department/Hr";
 import Finance from "./Components/Department/Finance";
 import Support from "./Components/Department/Support";
-import IT from "./Components/Department/IT"; 
+import It from "./Components/Department/It"; 
 import Admin from "./Components/Department/Admin";
 import Notifications from "./Components/Pages/Notifications";
 import SupportTickets from "./Components/Pages/SupportTickets";
 import Contact from "./Components/Pages/Contact";
 import Faqs from "./Components/Pages/Faqs";
+import It from "./Components/Department/It";
 export function MainContent({ currentView }) {
   const renderContent = () => {
     switch (currentView.toLowerCase()) {
@@ -63,7 +64,7 @@ export function MainContent({ currentView }) {
       case "support":
         return <Support />;
       case "it":
-        return <IT />;
+        return <It />;
       case "admin":
         return <Admin />;
       case "notifications":
