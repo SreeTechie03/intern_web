@@ -14,7 +14,7 @@ import Department from "./Components/Organization/Department";
 import Designation from "./Components/Organization/Designation"; 
 import Uprising from "./Components/Organization/Uprising";
 import Marketing from "./Components/Department/Marketing";
-import HR from "./Components/Department/HR";
+import Hr from "./Components/Department/Hr";
 import Finance from "./Components/Department/Finance";
 import Support from "./Components/Department/Support";
 import IT from "./Components/Department/IT"; 
@@ -57,7 +57,7 @@ export function MainContent({ currentView }) {
       case "marketing":
         return <Marketing />;
       case "hr":
-        return <HR />;
+        return <Hr/>;
       case "finance":
         return <Finance />; 
       case "support":
