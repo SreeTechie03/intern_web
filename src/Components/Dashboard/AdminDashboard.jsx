@@ -398,6 +398,5 @@ function AdminDashboard() {
     </div>
   );
 }
-// Export the component for use in other parts of the application
 
 export default AdminDashboard;
