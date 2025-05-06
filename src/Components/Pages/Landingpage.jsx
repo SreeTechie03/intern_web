@@ -1,6 +1,80 @@
 import React, { useState } from 'react';
 import { Lightbulb, Target, Trophy, Rocket, Mail, Linkedin, Github, ChevronDown, Menu, X } from 'lucide-react';
 
+const ContactFormModal = ({ isContactOpen, setIsContactOpen, formData, setFormData, handleSubmit }) => {
+  if (!isContactOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsContactOpen(false)}></div>
+      <div className="relative bg-slate-800 rounded-xl p-8 w-full max-w-md border border-slate-700 shadow-xl">
+        <button
+          onClick={() => setIsContactOpen(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+        >
+          <X className="h-6 w-6" />
+        </button>
+        
+        <h2 className="text-2xl font-bold text-white mb-6">Contact Us</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              required
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Your name"
+              value={formData.name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              required
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="your@email.com"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+              Message
+            </label>
+            <textarea
+              id="message"
+              required
+              rows="4"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              placeholder="Your message..."
+              value={formData.message}
+              onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+            ></textarea>
+          </div>
+          
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-300"
+          >
+            Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 function LandingPage({ onLoginClick }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -17,81 +91,6 @@ function LandingPage({ onLoginClick }) {
     // Reset form
     setFormData({ name: '', email: '', message: '' });
     setIsContactOpen(false);
-  };
-
-  // Contact Form Modal Component
-  const ContactFormModal = () => {
-    if (!isContactOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsContactOpen(false)}></div>
-        <div className="relative bg-slate-800 rounded-xl p-8 w-full max-w-md border border-slate-700 shadow-xl">
-          <button
-            onClick={() => setIsContactOpen(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-          >
-            <X className="h-6 w-6" />
-          </button>
-          
-          <h2 className="text-2xl font-bold text-white mb-6">Contact Us</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                required
-                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Your name"
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                />
-            </div>
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                required
-                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-                Message
-              </label>
-              <textarea
-                id="message"
-                required
-                rows="4"
-                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                placeholder="Your message..."
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              ></textarea>
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-300"
-            >
-              Send Message
-            </button>
-          </form>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -189,9 +188,14 @@ function LandingPage({ onLoginClick }) {
       </nav>
 
       {/* Contact Form Modal */}
-      <ContactFormModal />
+      <ContactFormModal
+        isContactOpen={isContactOpen}
+        setIsContactOpen={setIsContactOpen}
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmit={handleSubmit}
+      />
 
-      {/* Rest of the sections remain unchanged */}
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 overflow-hidden">
